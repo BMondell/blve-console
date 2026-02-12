@@ -11,37 +11,40 @@ export default function Dashboard() {
   const [orgData, setOrgData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   
-  // Create Supabase client once at component level
+  // Create Supabase client - this reads cookies automatically
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
   
   useEffect(() => {
-    // Check session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Get current session
+    supabase.auth.getSession().then(({  { session } }) => {
+      console.log('Session:', session)
       setSession(session)
       setLoading(false)
     })
     
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth state changes
+    const {  { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', session)
       setSession(session)
     })
     
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase])
+  }, [])
   
   useEffect(() => {
     // Fetch org data when session is available
     if (session) {
       supabase.from('org_dashboard_view').select('*').eq('slug', 'fiu').single().then(({ data, error }) => {
+        console.log('Org data:', data, 'Error:', error)
         if (!error) setOrgData(data)
       })
     }
-  }, [session, supabase])
+  }, [session])
   
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({ 

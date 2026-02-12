@@ -3,8 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { createBrowserClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 
 export default function Dashboard() {
   const [session, setSession] = useState(null)
@@ -16,19 +15,19 @@ export default function Dashboard() {
   )
   
   useEffect(() => {
-    supabase.auth.getSession().then(({  { session } }) => {
-      console.log('Current session:', session)
-      setSession(session)
+    supabase.auth.getSession().then(({  }) => {
+      console.log('Current session:', data.session)
+      setSession(data.session)
       setLoading(false)
     })
     
-    const {  { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {  } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed to:', session)
       setSession(session)
     })
     
     return () => {
-      subscription.unsubscribe()
+      data.subscription.unsubscribe()
     }
   }, [])
   

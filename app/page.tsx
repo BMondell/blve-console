@@ -21,12 +21,12 @@ export default function Dashboard() {
       setSession(result.data.session)
     })
     
-    const {  { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const authStateChange = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
     
     return () => {
-      subscription.unsubscribe()
+      authStateChange.data.subscription.unsubscribe()
     }
   }, [])
   

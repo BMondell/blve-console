@@ -4,47 +4,28 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
-import type { Session } from '@supabase/supabase-js'
 
 export default function Dashboard() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [orgData, setOrgData] = useState<any>(null)
+  const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   
-  // Create Supabase client - this reads cookies automatically
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
   
   useEffect(() => {
-    // Get current session
-    supabase.auth.getSession().then(({  { session } }) => {
-      console.log('Session:', session)
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setLoading(false)
     })
     
-    // Listen for auth state changes
-    const {  { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', session)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
     
-    return () => {
-      subscription.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [])
-  
-  useEffect(() => {
-    // Fetch org data when session is available
-    if (session) {
-      supabase.from('org_dashboard_view').select('*').eq('slug', 'fiu').single().then(({ data, error }) => {
-        console.log('Org data:', data, 'Error:', error)
-        if (!error) setOrgData(data)
-      })
-    }
-  }, [session])
   
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({ 
@@ -54,7 +35,7 @@ export default function Dashboard() {
   }
   
   if (loading) {
-    return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',color:'#666'}}>Loading...</div>
+    return <div>Loading...</div>
   }
   
   if (!session) {
@@ -62,47 +43,16 @@ export default function Dashboard() {
       <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(to bottom right, #e0e7ff, #f3e8ff)',padding:'2rem'}}>
         <div style={{textAlign:'center',maxWidth:'500px'}}>
           <div style={{fontSize:'4rem',fontWeight:'bold',marginBottom:'1rem'}}>BLVΞ</div>
-          <h1 style={{fontSize:'2rem',fontWeight:'bold',marginBottom:'1.5rem'}}>Routing belief without extraction</h1>
-          <p style={{fontSize:'1.1rem',color:'#666',marginBottom:'2rem'}}>FIU Athletics admin console — see real-time routing impact</p>
-          <button onClick={handleSignIn} style={{background:'#000',color:'#fff',padding:'1rem 2rem',borderRadius:'1rem',fontSize:'1.1rem',fontWeight:'medium',cursor:'pointer',boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>Sign in with Google</button>
-          <p style={{marginTop:'1.5rem',fontSize:'0.9rem',color:'#999'}}>Only authorized FIU Athletics staff can access this console</p>
+          <button onClick={handleSignIn} style={{background:'#000',color:'#fff',padding:'1rem 2rem',borderRadius:'1rem',fontSize:'1.1rem',fontWeight:'medium',cursor:'pointer'}}>Sign in with Google</button>
         </div>
       </div>
     )
   }
   
   return (
-    <div style={{minHeight:'100vh',background:'#f9fafb',padding:'2rem'}}>
-      <header style={{background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,0.1)',padding:'1rem 2rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
-          <div style={{fontSize:'1.75rem',fontWeight:'bold'}}>BLVΞ</div>
-          <div style={{color:'#999'}}>| FIU Athletics Console</div>
-        </div>
-        <button onClick={() => supabase.auth.signOut()} style={{color:'#666',background:'none',border:'none',fontSize:'1rem',cursor:'pointer'}}>Sign out</button>
-      </header>
-      <main style={{maxWidth:'1200px',margin:'2rem auto'}}>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'1.5rem',marginBottom:'2rem'}}>
-          <div style={{background:'#fff',borderRadius:'1rem',padding:'1.5rem',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
-            <div style={{color:'#999',fontSize:'0.9rem',marginBottom:'0.5rem'}}>TOTAL ROUTING POOL</div>
-            <div style={{fontSize:'2rem',fontWeight:'bold'}}>${orgData?.routing_pool?.toFixed(2) || '0.00'}</div>
-            <div style={{color:'#10b981',fontSize:'0.95rem',marginTop:'0.25rem'}}>+${orgData?.monthly_routing?.toFixed(2) || '0.00'} this month</div>
-          </div>
-          <div style={{background:'#fff',borderRadius:'1rem',padding:'1.5rem',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
-            <div style={{color:'#999',fontSize:'0.9rem',marginBottom:'0.5rem'}}>MONTHLY TRANSACTIONS</div>
-            <div style={{fontSize:'2rem',fontWeight:'bold'}}>{orgData?.monthly_tx?.toLocaleString() || '0'}</div>
-            <div style={{color:'#666',fontSize:'0.95rem',marginTop:'0.25rem'}}>from {orgData?.active_members?.toLocaleString() || '0'} community members</div>
-          </div>
-          <div style={{background:'#fff',borderRadius:'1rem',padding:'1.5rem',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
-            <div style={{color:'#999',fontSize:'0.9rem',marginBottom:'0.5rem'}}>AVG ROUTING PER TX</div>
-            <div style={{fontSize:'2rem',fontWeight:'bold'}}>${
-              orgData?.monthly_routing && orgData?.monthly_tx 
-                ? (orgData.monthly_routing / orgData.monthly_tx).toFixed(2) 
-                : '0.00'
-            }</div>
-            <div style={{color:'#666',fontSize:'0.95rem',marginTop:'0.25rem'}}>covenant-preserving (88% to FIU)</div>
-          </div>
-        </div>
-      </main>
+    <div style={{padding:'2rem'}}>
+      <h1>✅ SUCCESS! Signed in as: {session.user.email}</h1>
+      <button onClick={() => supabase.auth.signOut()} style={{marginTop:'1rem',padding:'0.5rem 1rem',background:'#000',color:'#fff',border:'none',borderRadius:'0.5rem',cursor:'pointer'}}>Sign out</button>
     </div>
   )
 }

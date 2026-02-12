@@ -15,12 +15,12 @@ export default function Dashboard() {
   )
   
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({  { session } }) => {
       setSession(session)
       setLoading(false)
     })
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {  { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
     

@@ -15,27 +15,23 @@ export default function Dashboard() {
   )
   
   useEffect(() => {
-    // Get current session
-    supabase.auth.getSession().then((result) => {
-      console.log('Current session:', result.data.session)
-      setSession(result.data.session)
+    // Check session on mount
+    supabase.auth.getSession().then(({  { session } }) => {
+      setSession(session)
       setLoading(false)
     })
     
     // Listen for auth changes
-    const authListener = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed to:', session)
+    const {  { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
     
-    // Cleanup
     return () => {
-      authListener.data.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
   }, [])
   
   const handleSignIn = async () => {
-    console.log('Starting sign in...')
     await supabase.auth.signInWithOAuth({ 
       provider: 'google', 
       options: { 

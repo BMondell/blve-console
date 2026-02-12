@@ -15,19 +15,22 @@ export default function Dashboard() {
   )
   
   useEffect(() => {
-    supabase.auth.getSession().then(({  }) => {
-      console.log('Current session:', data.session)
-      setSession(data.session)
+    // Get current session
+    supabase.auth.getSession().then((result) => {
+      console.log('Current session:', result.data.session)
+      setSession(result.data.session)
       setLoading(false)
     })
     
-    const {  } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes
+    const authListener = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed to:', session)
       setSession(session)
     })
     
+    // Cleanup
     return () => {
-      data.subscription.unsubscribe()
+      authListener.data.subscription.unsubscribe()
     }
   }, [])
   

@@ -1,36 +1,45 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
-import { createClient } from '@supabase/supabase-js'
+import type { Session } from '@supabase/supabase-js'
+
 export default function Dashboard() {
-  const [session, setSession] = useState(null)
-  const [orgData, setOrgData] = useState(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [orgData, setOrgData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-     const supabase = createBrowserClient(
+  
+  const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-     useEffect(() => {
+  
+  useEffect(() => {
     supabase.auth.getSession().then((result) => {
       setSession(result.data.session)
     })
-        const authState = supabase.auth.onAuthStateChange((_event, session) => {
+    
+    const { data: authState } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
-    const subscription = authState.data.subscription
-    return () => subscription.unsubscribe()
+    
+    return () => {
+      authState.subscription.unsubscribe()
+    }
   }, [supabase]) 
+  
   useEffect(() => {
     if (session) {
-      supabase.from('org_dashboard_view').select('*').eq('slug', 'fiu').single().then(({  data, error }) => {
+      supabase.from('org_dashboard_view').select('*').eq('slug', 'fiu').single().then(({ data, error }) => {
         if (!error) setOrgData(data)
         setLoading(false)
       })
     }
   }, [session, supabase])
+  
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/auth/callback` } })
   }
+  
   if (!session) {
     return (
       <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'linear-gradient(to bottom right, #e0e7ff, #f3e8ff)',padding:'2rem'}}>
@@ -44,9 +53,11 @@ export default function Dashboard() {
       </div>
     )
   }
+  
   if (loading) {
     return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',color:'#666'}}>Loading routing data...</div>
   }
+  
   return (
     <div style={{minHeight:'100vh',background:'#f9fafb',padding:'2rem'}}>
       <header style={{background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,0.1)',padding:'1rem 2rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>

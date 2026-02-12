@@ -11,50 +11,47 @@ export default function Dashboard() {
   const [orgData, setOrgData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   
+  // Create Supabase client once at component level
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  
   useEffect(() => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    
-    supabase.auth.getSession().then((result) => {
-      setSession(result.data.session)
+    // Check session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
     })
     
-    const authStateChange = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
     
     return () => {
-      authStateChange.data.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
-  }, [])
+  }, [supabase])
   
   useEffect(() => {
+    // Fetch org data when session is available
     if (session) {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      
       supabase.from('org_dashboard_view').select('*').eq('slug', 'fiu').single().then(({ data, error }) => {
         if (!error) setOrgData(data)
-        setLoading(false)
       })
-    } else {
-      setLoading(false)
     }
-  }, [session])
+  }, [session, supabase])
   
   const handleSignIn = async () => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
     await supabase.auth.signInWithOAuth({ 
       provider: 'google', 
       options: { redirectTo: `${location.origin}/auth/callback` } 
     })
+  }
+  
+  if (loading) {
+    return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',color:'#666'}}>Loading...</div>
   }
   
   if (!session) {
@@ -71,10 +68,6 @@ export default function Dashboard() {
     )
   }
   
-  if (loading) {
-    return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',color:'#666'}}>Loading routing data...</div>
-  }
-  
   return (
     <div style={{minHeight:'100vh',background:'#f9fafb',padding:'2rem'}}>
       <header style={{background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,0.1)',padding:'1rem 2rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -82,13 +75,7 @@ export default function Dashboard() {
           <div style={{fontSize:'1.75rem',fontWeight:'bold'}}>BLVΞ</div>
           <div style={{color:'#999'}}>| FIU Athletics Console</div>
         </div>
-        <button onClick={() => {
-          const supabase = createBrowserClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-          )
-          supabase.auth.signOut()
-        }} style={{color:'#666',background:'none',border:'none',fontSize:'1rem',cursor:'pointer'}}>Sign out</button>
+        <button onClick={() => supabase.auth.signOut()} style={{color:'#666',background:'none',border:'none',fontSize:'1rem',cursor:'pointer'}}>Sign out</button>
       </header>
       <main style={{maxWidth:'1200px',margin:'2rem auto'}}>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'1.5rem',marginBottom:'2rem'}}>

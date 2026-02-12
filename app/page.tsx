@@ -30,12 +30,18 @@ export default function Dashboard() {
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({ 
       provider: 'google', 
-      options: { redirectTo: `${location.origin}/auth/callback` } 
+      options: { 
+        redirectTo: `${location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent'
+        }
+      } 
     })
   }
   
   if (loading) {
-    return <div>Loading...</div>
+    return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem'}}>Loading...</div>
   }
   
   if (!session) {
@@ -50,9 +56,10 @@ export default function Dashboard() {
   }
   
   return (
-    <div style={{padding:'2rem'}}>
-      <h1>✅ SUCCESS! Signed in as: {session.user.email}</h1>
-      <button onClick={() => supabase.auth.signOut()} style={{marginTop:'1rem',padding:'0.5rem 1rem',background:'#000',color:'#fff',border:'none',borderRadius:'0.5rem',cursor:'pointer'}}>Sign out</button>
+    <div style={{padding:'2rem',minHeight:'100vh',background:'#f9fafb'}}>
+      <h1 style={{fontSize:'2rem',marginBottom:'1rem'}}>✅ SUCCESS!</h1>
+      <p style={{fontSize:'1.2rem',marginBottom:'2rem'}}>Signed in as: <strong>{session.user.email}</strong></p>
+      <button onClick={() => supabase.auth.signOut()} style={{padding:'0.75rem 1.5rem',background:'#000',color:'#fff',border:'none',borderRadius:'0.5rem',fontSize:'1rem',cursor:'pointer'}}>Sign out</button>
     </div>
   )
 }

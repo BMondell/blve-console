@@ -1,5 +1,8 @@
 'use client'
+
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import type { Session } from '@supabase/supabase-js'
@@ -9,36 +12,50 @@ export default function Dashboard() {
   const [orgData, setOrgData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-  
   useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    
     supabase.auth.getSession().then((result) => {
       setSession(result.data.session)
     })
     
-    const { data: authState } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
     
     return () => {
-      authState.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
-  }, [supabase]) 
+  }, [])
   
   useEffect(() => {
     if (session) {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      
       supabase.from('org_dashboard_view').select('*').eq('slug', 'fiu').single().then(({ data, error }) => {
         if (!error) setOrgData(data)
         setLoading(false)
       })
+    } else {
+      setLoading(false)
     }
-  }, [session, supabase])
+  }, [session])
   
   const handleSignIn = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/auth/callback` } })
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    await supabase.auth.signInWithOAuth({ 
+      provider: 'google', 
+      options: { redirectTo: `${location.origin}/auth/callback` } 
+    })
   }
   
   if (!session) {
@@ -66,7 +83,13 @@ export default function Dashboard() {
           <div style={{fontSize:'1.75rem',fontWeight:'bold'}}>BLVΞ</div>
           <div style={{color:'#999'}}>| FIU Athletics Console</div>
         </div>
-        <button onClick={() => supabase.auth.signOut()} style={{color:'#666',background:'none',border:'none',fontSize:'1rem',cursor:'pointer'}}>Sign out</button>
+        <button onClick={() => {
+          const supabase = createBrowserClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+          )
+          supabase.auth.signOut()
+        }} style={{color:'#666',background:'none',border:'none',fontSize:'1rem',cursor:'pointer'}}>Sign out</button>
       </header>
       <main style={{maxWidth:'1200px',margin:'2rem auto'}}>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'1.5rem',marginBottom:'2rem'}}>

@@ -6,9 +6,9 @@ export default function Dashboard() {
   const [session, setSession] = useState(null)
   const [orgData, setOrgData] = useState(null)
   const [loading, setLoading] = useState(true)
-    const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+     const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
      useEffect(() => {
     supabase.auth.getSession().then((result) => {

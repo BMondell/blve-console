@@ -15,21 +15,24 @@ export default function Dashboard() {
   )
   
   useEffect(() => {
-    supabase.auth.getSession().then(({  }) => {
-      setSession(data.session)
+    supabase.auth.getSession().then((result) => {
+      console.log('Session check:', result.data.session)
+      setSession(result.data.session)
       setLoading(false)
     })
     
-    const {  } = supabase.auth.onAuthStateChange((_event, session) => {
+    const authListener = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', session)
       setSession(session)
     })
     
     return () => {
-      subscription.unsubscribe()
+      authListener.data.subscription.unsubscribe()
     }
   }, [])
   
   const handleSignIn = () => {
+    console.log('Sign in clicked')
     supabase.auth.signInWithOAuth({ 
       provider: 'google', 
       options: { redirectTo: `${location.origin}/auth/callback` } 

@@ -20,9 +20,9 @@ export async function GET(request: Request) {
             const cookieStore = await cookies()
             cookieStore.set(name, value, options)
           },
-          async remove(name: string, options: any) {
+          async remove(name: string) {
             const cookieStore = await cookies()
-            cookieStore.delete(name, options)
+            cookieStore.delete(name)
           },
         },
       }

@@ -7,6 +7,7 @@ import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 
 export default function Dashboard() {
   const [session, setSession] = useState(null)
+  const [orgData, setOrgData] = useState(null)
   const [loading, setLoading] = useState(true)
   
   const supabase = createBrowserClient(
@@ -18,16 +19,50 @@ export default function Dashboard() {
     supabase.auth.getSession().then((result) => {
       console.log('Session check:', result.data.session)
       setSession(result.data.session)
+      
+      // FETCH ORG DATA IF SESSION EXISTS
+      if (result.data.session) {
+        supabase
+          .from('org_dashboard_view')
+          .select('*')
+          .eq('slug', 'fiu')
+          .single()
+          .then(({ data, error }) => {
+            console.log('Org ', data)
+            console.log('Org error:', error)
+            if (data) {
+              setOrgData(data)
+            }
+          })
+      }
+      
       setLoading(false)
     })
     
     const authListener = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed:', session)
       setSession(session)
+      
+      // FETCH ON AUTH STATE CHANGE
+      if (session) {
+        supabase
+          .from('org_dashboard_view')
+          .select('*')
+          .eq('slug', 'fiu')
+          .single()
+          .then(({ data, error }) => {
+            console.log('Org data on auth change:', data)
+            if (data) {
+              setOrgData(data)
+            }
+          })
+      }
     })
     
     return () => {
-      authListener.data.subscription.unsubscribe()
+      if (authListener && authListener.data && authListener.data.subscription) {
+        authListener.data.subscription.unsubscribe()
+      }
     }
   }, [])
   
@@ -70,17 +105,21 @@ export default function Dashboard() {
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'1.5rem',marginBottom:'2rem'}}>
           <div style={{background:'#fff',borderRadius:'1rem',padding:'1.5rem',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
             <div style={{color:'#999',fontSize:'0.9rem',marginBottom:'0.5rem'}}>TOTAL ROUTING POOL</div>
-            <div style={{fontSize:'2rem',fontWeight:'bold'}}>$0.50</div>
-            <div style={{color:'#10b981',fontSize:'0.95rem',marginTop:'0.25rem'}}>+$0.50 this month</div>
+            <div style={{fontSize:'2rem',fontWeight:'bold'}}>${orgData?.routing_pool?.toFixed(2) || '0.50'}</div>
+            <div style={{color:'#10b981',fontSize:'0.95rem',marginTop:'0.25rem'}}>+${orgData?.monthly_routing?.toFixed(2) || '0.50'} this month</div>
           </div>
           <div style={{background:'#fff',borderRadius:'1rem',padding:'1.5rem',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
             <div style={{color:'#999',fontSize:'0.9rem',marginBottom:'0.5rem'}}>MONTHLY TRANSACTIONS</div>
-            <div style={{fontSize:'2rem',fontWeight:'bold'}}>0</div>
-            <div style={{color:'#666',fontSize:'0.95rem',marginTop:'0.25rem'}}>from 0 community members</div>
+            <div style={{fontSize:'2rem',fontWeight:'bold'}}>{orgData?.monthly_tx?.toLocaleString() || '0'}</div>
+            <div style={{color:'#666',fontSize:'0.95rem',marginTop:'0.25rem'}}>from {orgData?.active_members?.toLocaleString() || '0'} community members</div>
           </div>
           <div style={{background:'#fff',borderRadius:'1rem',padding:'1.5rem',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
             <div style={{color:'#999',fontSize:'0.9rem',marginBottom:'0.5rem'}}>AVG ROUTING PER TX</div>
-            <div style={{fontSize:'2rem',fontWeight:'bold'}}>$0.00</div>
+            <div style={{fontSize:'2rem',fontWeight:'bold'}}>${
+              orgData?.monthly_routing && orgData?.monthly_tx 
+                ? (orgData.monthly_routing / orgData.monthly_tx).toFixed(2) 
+                : '0.00'
+            }</div>
             <div style={{color:'#666',fontSize:'0.95rem',marginTop:'0.25rem'}}>covenant-preserving (88% to FIU)</div>
           </div>
         </div>

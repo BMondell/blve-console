@@ -5,9 +5,20 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import type { Session } from '@supabase/supabase-js'
+
+interface OrgData {
+  id: string
+  name: string
+  slug: string
+  routing_pool: number
+  monthly_routing: number
+  monthly_tx: number
+  active_members: number
+}
+
 export default function Dashboard() {
   const [session, setSession] = useState<Session | null>(null)
-  const [orgData, setOrgData] = useState(null)
+  const [orgData, setOrgData] = useState<OrgData | null>(null)
   const [loading, setLoading] = useState(true)
   
   const supabase = createBrowserClient(

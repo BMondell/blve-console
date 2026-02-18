@@ -7,22 +7,20 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
+    const cookieStore = cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          async get(name: string) {
-            const cookieStore = await cookies()
+          get(name: string) {
             return cookieStore.get(name)?.value
           },
-          async set(name: string, value: string, options: any) {
-            const cookieStore = await cookies()
+          set(name: string, value: string, options: any) {
             cookieStore.set(name, value, options)
           },
-          async remove(name: string) {
-            const cookieStore = await cookies()
-            cookieStore.delete(name)
+          remove(name: string, options: any) {
+            cookieStore.delete(name, options)
           },
         },
       }
@@ -31,5 +29,6 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  return NextResponse.redirect(requestUrl.origin)
+  // Redirect to dashboard root (not origin) after auth
+  return NextResponse.redirect(new URL('/', requestUrl.origin))
 }

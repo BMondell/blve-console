@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    // GET COOKIE STORE SYNCHRONOUSLY (critical for Next.js 13+)
     const cookieStore = cookies()
-    
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -18,11 +16,11 @@ export async function GET(request: Request) {
           get(name: string) {
             return cookieStore.get(name)?.value
           },
-          set(name: string, value: string, options: any) {
+          set(name: string, value: string, options: CookieOptions) {
             cookieStore.set(name, value, options)
           },
-          remove(name: string, options: any) {
-            cookieStore.delete(name, options)
+          remove(name: string, options: CookieOptions) {
+            cookieStore.set(name, '', options)
           },
         },
       }
@@ -31,6 +29,6 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // Redirect to dashboard root after auth
-  return NextResponse.redirect(new URL('/', requestUrl.origin))
+  // Redirect to dashboard root (critical: must be same domain)
+  return NextResponse.redirect(requestUrl.origin)
 }

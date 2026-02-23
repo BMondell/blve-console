@@ -1,7 +1,12 @@
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { getCachedOrgDashboard, setCachedOrgDashboard } from '@/lib/cache'
+
+// Create a simple Supabase client (no cookies needed for read-only org data)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export const dynamic = 'force-dynamic'
 
@@ -20,38 +25,7 @@ export async function GET(request: Request) {
       })
     }
 
-    // Get cookie store (synchronous in route handlers)
-    const cookieStore = cookies()
-    
-    // Create supabase client with proper cookie handling
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            // Fix: Handle cookie store typing correctly
-            const cookie = cookieStore.get(name)
-            return cookie ? cookie.value : null
-          },
-          set(name: string, value: string, options: any) {
-            try {
-              cookieStore.set(name, value, options)
-            } catch (error) {
-              console.warn('Cookie set failed:', name)
-            }
-          },
-          remove(name: string, options: any) {
-            try {
-              cookieStore.set(name, '', { ...options, maxAge: 0 })
-            } catch (error) {
-              console.warn('Cookie remove failed:', name)
-            }
-          },
-        },
-      }
-    )
-
+    // Fetch from database (no cookies needed - public org data)
     const { data, error } = await supabase
       .from('org_dashboard_view')
       .select('*')

@@ -7,42 +7,24 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
+    // MUST call cookies() synchronously at top level of handler
     const cookieStore = cookies()
+    
+    // Create Supabase client with minimal cookie handlers
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           get(name: string) {
-            return cookieStore.get(name)?.value
+            const cookie = cookieStore.get(name)
+            return cookie ? cookie.value : null
           },
           set(name: string, value: string, options: any) {
-            // Critical: Set domain/path for Vercel deployments
-            const domain = requestUrl.hostname === 'localhost' 
-              ? undefined 
-              : `.${requestUrl.hostname.split('.').slice(-2).join('.')}`
-            
-            cookieStore.set(name, value, {
-              ...options,
-              domain,
-              path: '/',
-              sameSite: 'lax',
-              secure: requestUrl.protocol === 'https:',
-            })
+            cookieStore.set(name, value, options)
           },
           remove(name: string, options: any) {
-            const domain = requestUrl.hostname === 'localhost' 
-              ? undefined 
-              : `.${requestUrl.hostname.split('.').slice(-2).join('.')}`
-            
-            cookieStore.set(name, '', {
-              ...options,
-              domain,
-              path: '/',
-              sameSite: 'lax',
-              secure: requestUrl.protocol === 'https:',
-              maxAge: 0,
-            })
+            cookieStore.set(name, '', options)
           },
         },
       }
@@ -52,5 +34,5 @@ export async function GET(request: Request) {
   }
 
   // Redirect to dashboard root
-  return NextResponse.redirect(new URL('/', requestUrl.origin))
+  return NextResponse.redirect(requestUrl.origin)
 }

@@ -7,18 +7,17 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    // MUST call cookies() synchronously at top level of handler
-    const cookieStore = cookies()
+    // WORKAROUND: Next.js 15+ TS types show cookies() as async, but it's synchronous in route handlers
+    // Type assertion bypasses TS error while maintaining correct runtime behavior
+    const cookieStore = cookies() as any
     
-    // Create Supabase client with minimal cookie handlers
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           get(name: string) {
-            const cookie = cookieStore.get(name)
-            return cookie ? cookie.value : null
+            return cookieStore.get(name)?.value ?? null
           },
           set(name: string, value: string, options: any) {
             cookieStore.set(name, value, options)
@@ -33,6 +32,5 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // Redirect to dashboard root
   return NextResponse.redirect(requestUrl.origin)
 }

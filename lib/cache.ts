@@ -1,4 +1,4 @@
-// lib/cache.ts - Redis optional fallback
+// lib/cache.ts - Redis optional with type-safe error handling
 let redisClient: any = null
 
 try {
@@ -13,12 +13,17 @@ try {
   } else {
     console.warn('⚠️ Redis not configured - using fallback memory cache')
   }
-} catch (error) {
-  console.warn('⚠️ Redis initialization failed:', error.message)
+} catch (err) {
+  // Type-safe error handling for unknown errors
+  if (err instanceof Error) {
+    console.warn('⚠️ Redis initialization failed:', err.message)
+  } else {
+    console.warn('⚠️ Redis initialization failed with unknown error:', err)
+  }
 }
 
 // Fallback in-memory cache (for development/local testing)
-const memoryCache = new Map<string, any>()
+const memoryCache = new Map<string, { value: any; timestamp: number }>()
 const CACHE_TTL = 300000 // 5 minutes in ms
 
 export async function getCache<T>(key: string): Promise<T | null> {
@@ -26,18 +31,20 @@ export async function getCache<T>(key: string): Promise<T | null> {
     // Try Redis first if available
     if (redisClient) {
       const data = await redisClient.get<T>(key)
-      if (data) return data
+      if (data !== null && data !== undefined) return data
     }
     
     // Fallback to memory cache
     const cached = memoryCache.get(key)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return cached.value
+      return cached.value as T
     }
     
     return null
-  } catch (error) {
-    console.warn('Cache get failed:', error)
+  } catch (err) {
+    if (err instanceof Error) {
+      console.warn('Cache get failed:', err.message)
+    }
     return null
   }
 }
@@ -58,15 +65,15 @@ export async function setCache(key: string, value: any, ttl: number = 300): Prom
     
     // Auto-expire after TTL
     setTimeout(() => {
-      if (memoryCache.has(key)) {
-        const cached = memoryCache.get(key)
-        if (cached && Date.now() - cached.timestamp >= CACHE_TTL) {
-          memoryCache.delete(key)
-        }
+      const cached = memoryCache.get(key)
+      if (cached && Date.now() - cached.timestamp >= CACHE_TTL) {
+        memoryCache.delete(key)
       }
     }, ttl * 1000)
-  } catch (error) {
-    console.warn('Cache set failed:', error)
+  } catch (err) {
+    if (err instanceof Error) {
+      console.warn('Cache set failed:', err.message)
+    }
   }
 }
 
@@ -76,8 +83,10 @@ export async function deleteCache(key: string): Promise<void> {
       await redisClient.del(key)
     }
     memoryCache.delete(key)
-  } catch (error) {
-    console.warn('Cache delete failed:', error)
+  } catch (err) {
+    if (err instanceof Error) {
+      console.warn('Cache delete failed:', err.message)
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-// lib/cache.ts - Redis optional with safe typing
+// lib/cache.ts - Redis optional with full TypeScript compliance
 let redisClient: any = null
 
 try {
@@ -102,7 +102,8 @@ export async function getCachedOrgDashboard(slug: string) {
   return null
 }
 
-export async function setCachedOrgDashboard(slug: string,  any) {
+// FIXED: Added explicit type annotation ": any" for data parameter
+export async function setCachedOrgDashboard(slug: string, data: any) {
   const cacheKey = `org:dashboard:${slug}`
   await setCache(cacheKey, data, 300) // 5 minute cache
 }

@@ -99,6 +99,7 @@ export async function setCachedOrgDashboard(slug: string,  any) {
   const cacheKey = `org:dashboard:${slug}`
   await setCache(cacheKey, data, 300)
 }
+}
 
 export async function invalidateOrgCache(slug: string) {
   const cacheKey = `org:dashboard:${slug}`

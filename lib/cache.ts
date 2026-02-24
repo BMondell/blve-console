@@ -1,40 +1,43 @@
-// lib/cache.ts - Redis optional with full TypeScript compliance
+// lib/cache.ts - Safe lazy initialization (prevents module-level crashes)
 let redisClient: any = null
+let redisInitialized = false
 
-try {
-  // Only initialize Redis if credentials exist
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    const { Redis } = require('@upstash/redis')
-    redisClient = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-    console.log('✅ Redis cache initialized')
-  } else {
-    console.warn('⚠️ Redis not configured - using fallback memory cache')
-  }
-} catch (err) {
-  // Type-safe error handling for unknown errors
-  if (err instanceof Error) {
-    console.warn('⚠️ Redis initialization failed:', err.message)
-  } else {
-    console.warn('⚠️ Redis initialization failed with unknown error:', err)
+function initializeRedis() {
+  if (redisInitialized) return
+  redisInitialized = true
+
+  try {
+    // Only initialize if env vars exist (safe for Vercel without Redis)
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      const { Redis } = require('@upstash/redis')
+      redisClient = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      })
+      console.log('✅ Redis cache initialized')
+    } else {
+      console.warn('⚠️ Redis not configured - using memory cache')
+    }
+  } catch (err) {
+    if (err instanceof Error) {
+      console.warn('⚠️ Redis init failed:', err.message)
+    }
   }
 }
 
-// Fallback in-memory cache (for development/local testing)
+// Fallback in-memory cache
 const memoryCache = new Map<string, { value: any; timestamp: number }>()
-const CACHE_TTL = 300000 // 5 minutes in ms
+const CACHE_TTL = 300000 // 5 minutes
 
 export async function getCache<T>(key: string): Promise<T | null> {
+  initializeRedis()
+  
   try {
-    // Try Redis first if available (no generic type parameter on .get())
     if (redisClient) {
       const data = await redisClient.get(key)
       if (data !== null && data !== undefined) return data as T
     }
     
-    // Fallback to memory cache
     const cached = memoryCache.get(key)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       return cached.value as T
@@ -50,20 +53,16 @@ export async function getCache<T>(key: string): Promise<T | null> {
 }
 
 export async function setCache(key: string, value: any, ttl: number = 300): Promise<void> {
+  initializeRedis()
+  
   try {
-    // Try Redis first if available
     if (redisClient) {
       await redisClient.set(key, value, { ex: ttl })
       return
     }
     
-    // Fallback to memory cache
-    memoryCache.set(key, {
-      value,
-      timestamp: Date.now()
-    })
+    memoryCache.set(key, { value, timestamp: Date.now() })
     
-    // Auto-expire after TTL
     setTimeout(() => {
       const cached = memoryCache.get(key)
       if (cached && Date.now() - cached.timestamp >= CACHE_TTL) {
@@ -78,10 +77,10 @@ export async function setCache(key: string, value: any, ttl: number = 300): Prom
 }
 
 export async function deleteCache(key: string): Promise<void> {
+  initializeRedis()
+  
   try {
-    if (redisClient) {
-      await redisClient.del(key)
-    }
+    if (redisClient) await redisClient.del(key)
     memoryCache.delete(key)
   } catch (err) {
     if (err instanceof Error) {
@@ -90,22 +89,15 @@ export async function deleteCache(key: string): Promise<void> {
   }
 }
 
-// Org dashboard caching
 export async function getCachedOrgDashboard(slug: string) {
   const cacheKey = `org:dashboard:${slug}`
   const cached = await getCache(cacheKey)
-  
-  if (cached) {
-    return { ...cached, fromCache: true }
-  }
-  
-  return null
+  return cached ? { ...cached, fromCache: true } : null
 }
 
-// FIXED: Added explicit type annotation ": any" for data parameter
-export async function setCachedOrgDashboard(slug: string, data: any) {
+export async function setCachedOrgDashboard(slug: string,  any) {
   const cacheKey = `org:dashboard:${slug}`
-  await setCache(cacheKey, data, 300) // 5 minute cache
+  await setCache(cacheKey, data, 300)
 }
 
 export async function invalidateOrgCache(slug: string) {

@@ -95,7 +95,7 @@ export async function getCachedOrgDashboard(slug: string) {
   return cached ? { ...cached, fromCache: true } : null
 }
 
-export async function setCachedOrgDashboard(slug: string,  unknown) {
+export async function setCachedOrgDashboard(slug: string, data: unknown) {
   const cacheKey = `org:dashboard:${slug}`
   await setCache(cacheKey, data, 300)
 }

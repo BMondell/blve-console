@@ -11,8 +11,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const slug = searchParams.get('slug')?.toLowerCase().trim().replace(/\.$/, '') || 'fiu'
 
-    // ✅ CORRECT DESTRUCTURING: { data: org, error }
-    const { data: org, error } = await supabase
+    const {  org, error } = await supabase
       .from('organizations')
       .select('*')
       .ilike('slug', slug)

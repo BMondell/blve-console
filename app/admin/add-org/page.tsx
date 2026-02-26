@@ -154,6 +154,5 @@ export default function DashboardPage() {
     </Suspense>
   )
 }
-Merge branch 'main' of https://github.com/BMondell/blve-console
 
-Re-integrated local dashboard fixes (Suspense + useSearchParams) after pulling remote changes
+

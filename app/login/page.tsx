@@ -7,30 +7,31 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
-// Inner component that uses searchParams (client-only)
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get redirect from query param (from middleware)
+    // Get intended redirect from query param (from middleware)
     const redirectPath = searchParams.get('redirect') || '/admin/dashboard'
 
-    // Handle callback hash if present
-    const hash = window.location.hash
-    if (hash) {
+    // Clear any hash from callback
+    if (window.location.hash) {
       window.location.hash = ''
     }
 
-    // Check session and redirect if logged in
+    // Check if already logged in (after callback)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.replace(redirectPath)
+      } else {
+        setLoading(false)
       }
-    })
+    }).catch(() => setLoading(false))
 
-    // Listen for auth changes
+    // Listen for login success
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         router.replace(redirectPath)
@@ -42,8 +43,12 @@ function LoginContent() {
     }
   }, [router, searchParams])
 
+  if (loading) {
+    return <div className="text-xl">Checking session...</div>
+  }
+
   return (
-    <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
+    <>
       <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">BLVE Admin Login</h1>
       
       {error && <p className="text-red-600 text-center mb-4">{error}</p>}
@@ -65,17 +70,18 @@ function LoginContent() {
         onlyThirdPartyProviders={true}
         redirectTo={`${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`}
       />
-    </div>
+    </>
   )
 }
 
-// Wrapper with Suspense (fixes prerender error)
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-blue-50">
-      <Suspense fallback={<div className="text-xl">Loading login...</div>}>
-        <LoginContent />
-      </Suspense>
+      <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
+        <Suspense fallback={<div className="text-xl">Loading login...</div>}>
+          <LoginContent />
+        </Suspense>
+      </div>
     </div>
   )
 }

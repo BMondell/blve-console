@@ -20,13 +20,10 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Use getUser() for faster auth check in middleware
+  const { data: { user } } = await supabase.auth.getUser()
 
-  // Protect /admin/* routes
-  if (request.nextUrl.pathname.startsWith('/admin') && !session) {
-    // Redirect to login
+  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)

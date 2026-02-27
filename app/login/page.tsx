@@ -2,22 +2,25 @@
 
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [redirectTo, setRedirectTo] = useState('/admin/dashboard') // fallback
 
   useEffect(() => {
-    // If already logged in, redirect to admin dashboard
+    // Compute redirect only on client
+    setRedirectTo(`${window.location.origin}/admin/dashboard`)
+
+    // Redirect if already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.replace('/admin/dashboard')
       }
     })
 
-    // Listen for auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         router.replace('/admin/dashboard')
@@ -49,7 +52,7 @@ export default function LoginPage() {
           }}
           providers={['google']}
           onlyThirdPartyProviders={true}
-          redirectTo={`${window.location.origin}/admin/dashboard`}
+          redirectTo={redirectTo}  // now dynamic
         />
       </div>
     </div>

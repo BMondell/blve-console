@@ -3,7 +3,11 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  // Create server-safe client (no build-time crash)
+  const requestUrl = new URL(request.url)
+
+  // Create response object early so we can mutate cookies
+  const response = NextResponse.next()
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -13,9 +17,11 @@ export async function GET(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
+          // Mutate the response cookies in place
           cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options)
           })
+          // Do NOT return anything here — just mutate
         },
       },
     }
@@ -29,19 +35,16 @@ export async function GET(request: NextRequest) {
     if (error) throw error
 
     const enriched = await Promise.all(orgsData.map(async (org) => {
-      // Count sub-orgs
       const { count: subCount } = await supabase
         .from('organizations')
         .select('*', { count: 'exact' })
         .eq('parent_org_id', org.id)
 
-      // Count members
       const { count: memberCount } = await supabase
         .from('members')
         .select('*', { count: 'exact' })
         .eq('org_id', org.id)
 
-      // Count transactions & avg amount
       const { data: txData } = await supabase
         .from('transactions')
         .select('amount')
@@ -60,7 +63,6 @@ export async function GET(request: NextRequest) {
       }
     }))
 
-    // Global totals
     const totalPool = enriched.reduce((sum, o) => sum + parseFloat(o.routing_pool || '0'), 0)
     const totalTx = enriched.reduce((sum, o) => sum + o.tx_count, 0)
     const totalMembers = enriched.reduce((sum, o) => sum + o.member_count, 0)

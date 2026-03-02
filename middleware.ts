@@ -20,10 +20,19 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Use getUser() for faster auth check in middleware
-  const { data: { user } } = await supabase.auth.getUser()
+  // Use getUser() + small retry for cookie sync
+  let user = null
+  for (let i = 0; i < 2; i++) {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+    if (user) break
+    await new Promise(r => setTimeout(r, 200)) // 200ms delay
+  }
+
+  console.log('Middleware path:', request.nextUrl.pathname, 'User:', user ? user.email : 'none')
 
   if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+    console.log('No user - redirecting to login')
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)

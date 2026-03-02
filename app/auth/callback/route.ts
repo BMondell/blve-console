@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
-  console.log('Callback route hit - code present:', !!code)
+  console.log('Callback hit - code present:', !!code)
 
   if (!code) {
     console.log('No code - redirect to login')
@@ -24,10 +24,15 @@ export async function GET(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          console.log('Setting', cookiesToSet.length, 'cookies in callback')
+          console.log('Setting', cookiesToSet.length, 'cookies')
           cookiesToSet.forEach(({ name, value, options }) => {
-            console.log('Cookie:', name, 'value length:', value.length, 'options:', options)
-            response.cookies.set(name, value, options)
+            // Explicitly set path, secure, sameSite
+            response.cookies.set(name, value, {
+              ...options,
+              path: '/',
+              sameSite: 'lax',
+              secure: true, // true for production
+            })
           })
         },
       },
@@ -41,8 +46,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
-  console.log('Session set in callback:', session ? 'success' : 'failed', 'User:', session?.user?.email)
+  console.log('Session set:', session ? 'success' : 'failed', 'User:', session?.user?.email)
 
-  const redirectUrl = new URL('/admin/dashboard', request.url)
-  return NextResponse.redirect(redirectUrl)
+  return NextResponse.redirect(new URL('/admin/dashboard', request.url))
 }

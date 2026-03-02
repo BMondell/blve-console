@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   console.log('Callback route hit - code present:', !!code)
 
   if (!code) {
-    console.log('No code in query - redirecting to login')
+    console.log('No code - redirect to login')
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -24,8 +24,9 @@ export async function GET(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          console.log('Setting cookies in callback:', cookiesToSet.length)
+          console.log('Setting', cookiesToSet.length, 'cookies in callback')
           cookiesToSet.forEach(({ name, value, options }) => {
+            console.log('Cookie:', name, 'value length:', value.length, 'options:', options)
             response.cookies.set(name, value, options)
           })
         },
@@ -36,13 +37,12 @@ export async function GET(request: NextRequest) {
   const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
-    console.error('Exchange code error:', error.message)
+    console.error('Exchange error:', error.message)
     return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
-  console.log('Session set in callback:', session ? 'success' : 'failed')
+  console.log('Session set in callback:', session ? 'success' : 'failed', 'User:', session?.user?.email)
 
-  // Force redirect to admin
   const redirectUrl = new URL('/admin/dashboard', request.url)
   return NextResponse.redirect(redirectUrl)
 }

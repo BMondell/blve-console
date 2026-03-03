@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { ChevronDown, ChevronRight } from 'lucide-react' // install lucide-react if not already
+import { ChevronDown, ChevronRight } from 'lucide-react'
 
 interface OrgSummary {
   id: string
@@ -14,7 +14,8 @@ interface OrgSummary {
   member_count: number
   tx_count: number
   tx_avg: number
-  sub_orgs?: OrgSummary[] // we'll add this
+  sub_orgs?: OrgSummary[]
+  parent_org_id?: string   // ← FIXED: added this so TypeScript knows sub-orgs have a parent link
 }
 
 interface GlobalSummary {
@@ -30,7 +31,7 @@ export default function AdminDashboard() {
   const [summary, setSummary] = useState<GlobalSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set()) // track which parents are expanded
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     async function loadData() {
@@ -44,6 +45,7 @@ export default function AdminDashboard() {
         // Group sub-orgs under parents
         const parentMap = new Map<string, OrgSummary>()
         const parents: OrgSummary[] = []
+
         json.orgs.forEach((org: OrgSummary) => {
           if (org.org_type === 'parent') {
             parentMap.set(org.id, { ...org, sub_orgs: [] })
@@ -53,7 +55,7 @@ export default function AdminDashboard() {
 
         json.orgs.forEach((org: OrgSummary) => {
           if (org.org_type === 'sub') {
-            const parent = parentMap.get(org.parent_org_id)
+            const parent = parentMap.get(org.parent_org_id!)
             if (parent) {
               parent.sub_orgs!.push(org)
             }
@@ -68,6 +70,7 @@ export default function AdminDashboard() {
         setLoading(false)
       }
     }
+
     loadData()
   }, [])
 

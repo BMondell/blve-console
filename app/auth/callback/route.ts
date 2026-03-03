@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
-  console.log('Callback route hit - code:', code ? 'present' : 'missing')
+  console.log('Callback hit - code:', code ? 'present' : 'missing')
 
   if (!code) {
     console.log('No code - redirect to login')
@@ -24,17 +24,17 @@ export async function GET(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          console.log('Callback setting', cookiesToSet.length, 'cookies')
+          console.log('Setting', cookiesToSet.length, 'cookies in callback')
           cookiesToSet.forEach(({ name, value, options }) => {
-            // Force explicit cookie settings for reliability
+            // Explicit flags for cross-site reliability
             response.cookies.set(name, value, {
               ...options,
               path: '/',
               sameSite: 'lax',
-              secure: true, // must be true in production (HTTPS)
+              secure: true,
               httpOnly: true,
             })
-            console.log('Set cookie:', name, 'length:', value.length)
+            console.log('Cookie set:', name, 'length:', value.length)
           })
         },
       },
@@ -44,13 +44,12 @@ export async function GET(request: NextRequest) {
   const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
-    console.error('Exchange code error:', error.message)
+    console.error('Exchange error:', error.message)
     return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
-  console.log('Session created in callback:', session ? 'success' : 'failed')
-  console.log('User email:', session?.user?.email || 'none')
+  console.log('Session created:', session ? 'success' : 'failed', 'User:', session?.user?.email || 'none')
 
-  const redirectUrl = new URL('/admin/dashboard', request.url)
-  return NextResponse.redirect(redirectUrl)
+  // Force redirect to admin
+  return NextResponse.redirect(new URL('/admin/dashboard', request.url))
 }

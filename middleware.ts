@@ -22,9 +22,9 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // TEMP DISABLE: comment out to test login flow without protection
+  // TEMP: disable redirect to test if login succeeds without bounce
   // if (request.nextUrl.pathname.startsWith('/admin') && !user) {
-  //   console.log('No user - redirecting to login (disabled for test)')
+  //   console.log('No user detected - would redirect to login (disabled for test)')
   //   const redirectUrl = new URL('/login', request.url)
   //   redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
   //   return NextResponse.redirect(redirectUrl)

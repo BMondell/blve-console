@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
-  console.log('Callback hit - code:', code ? 'present' : 'missing')
+  console.log('Callback hit - full URL:', request.url)
+  console.log('Code present:', !!code)
 
   if (!code) {
     console.log('No code - redirect to login')
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
   }
 
   const response = NextResponse.next()
+
+  const host = request.headers.get('host') || 'blve-console-pcvm.vercel.app'
+  const domain = host.startsWith('www.') ? host.slice(4) : host
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,15 +30,17 @@ export async function GET(request: NextRequest) {
         setAll(cookiesToSet) {
           console.log('Setting', cookiesToSet.length, 'cookies in callback')
           cookiesToSet.forEach(({ name, value, options }) => {
-            // Explicit flags for cross-site reliability
-            response.cookies.set(name, value, {
+            const cookieOptions = {
               ...options,
               path: '/',
+              domain: domain,
               sameSite: 'lax',
               secure: true,
               httpOnly: true,
-            })
-            console.log('Cookie set:', name, 'length:', value.length)
+              maxAge: 60 * 60 * 24 * 7, // 7 days
+            }
+            response.cookies.set(name, value, cookieOptions)
+            console.log(`Cookie set: ${name}, value length: ${value.length}, domain: ${cookieOptions.domain}, path: ${cookieOptions.path}`)
           })
         },
       },
@@ -44,12 +50,13 @@ export async function GET(request: NextRequest) {
   const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
-    console.error('Exchange error:', error.message)
+    console.error('Exchange code error:', error.message)
     return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
-  console.log('Session created:', session ? 'success' : 'failed', 'User:', session?.user?.email || 'none')
+  console.log('Session created:', session ? 'success' : 'failed')
+  console.log('User email:', session?.user?.email || 'none')
+  console.log('Access token length:', session?.access_token?.length || 0)
 
-  // Force redirect to admin
   return NextResponse.redirect(new URL('/admin/dashboard', request.url))
 }

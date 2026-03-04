@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
-  console.log('Callback hit - code:', code ? 'present' : 'missing')
+  console.log('Callback hit - code present:', !!code)
+  console.log('Full callback URL:', request.url)
 
   if (!code) {
     console.log('No code - redirect to login')
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
   }
 
   const response = NextResponse.next()
+
+  const host = request.headers.get('host') || 'blve-console-pcvm.vercel.app'
+  const domain = host.split(':')[0] // remove port if present
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,15 +30,17 @@ export async function GET(request: NextRequest) {
         setAll(cookiesToSet) {
           console.log('Callback setting', cookiesToSet.length, 'cookies')
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, {
+            const cookieOptions = {
+              ...options,
               path: '/',
-              domain: request.headers.get('host')?.split(':')[0], // explicit domain
+              domain: domain.startsWith('www.') ? domain.slice(4) : domain,
               sameSite: 'lax',
               secure: true,
               httpOnly: true,
               maxAge: 60 * 60 * 24 * 7, // 7 days
-            })
-            console.log('Set cookie:', name, 'value length:', value.length)
+            }
+            response.cookies.set(name, value, cookieOptions)
+            console.log(`Set cookie: ${name}, value length: ${value.length}, domain: ${cookieOptions.domain}, path: ${cookieOptions.path}`)
           })
         },
       },
@@ -44,11 +50,14 @@ export async function GET(request: NextRequest) {
   const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
-    console.error('Exchange error:', error.message)
+    console.error('Exchange code error:', error.message)
     return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
-  console.log('Session created in callback:', session ? 'success' : 'failed', 'User:', session?.user?.email || 'none')
+  console.log('Session created in callback:', session ? 'success' : 'failed')
+  console.log('User email:', session?.user?.email || 'none')
+  console.log('Session access token length:', session?.access_token?.length || 0)
 
+  // Force redirect to dashboard
   return NextResponse.redirect(new URL('/admin/dashboard', request.url))
 }

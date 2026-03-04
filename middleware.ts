@@ -14,21 +14,35 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
         },
       },
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Retry getUser() to handle cookie sync delay after login/callback
+  let user = null
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
 
-  // TEMP DISABLE: comment out to test login flow without protection
-  // if (request.nextUrl.pathname.startsWith('/admin') && !user) {
-  //   console.log('No user - redirecting to login (disabled for test)')
-  //   const redirectUrl = new URL('/login', request.url)
-  //   redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
-  //   return NextResponse.redirect(redirectUrl)
-  // }
+    // Debug log in Vercel runtime
+    console.log(`Middleware attempt ${attempt} for ${request.nextUrl.pathname} - user: ${user ? user.email : 'none'}`)
+
+    if (user) break
+
+    // Wait 250ms before retry
+    await new Promise(resolve => setTimeout(resolve, 250))
+  }
+
+  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+    console.log('No user after retries - redirecting to login')
+    const redirectUrl = new URL('/login', request.url)
+    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
+  }
 
   return response
 }

@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js' // FIX: added types
 
 function LoginContent() {
   const router = useRouter()
@@ -13,7 +14,7 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Single client instance
+  // Single Supabase client instance (avoids multiple GoTrueClient warning)
   const supabaseRef = useRef<any>(null)
   if (!supabaseRef.current) {
     supabaseRef.current = createClient(
@@ -29,47 +30,56 @@ function LoginContent() {
     const redirectPath = searchParams.get('redirect') || '/admin/dashboard'
     console.log('Redirect target from query:', redirectPath)
 
+    // Clear any leftover hash from callback
     if (window.location.hash) {
       console.log('Clearing callback hash fragment')
       window.location.hash = ''
     }
 
-    // Retry session check
+    // Retry session check with delay (helps with cookie sync timing)
     const checkSession = async () => {
       for (let attempt = 1; attempt <= 4; attempt++) {
         const { data: { session }, error } = await supabase.auth.getSession()
         console.log(`Session check attempt ${attempt}:`, { hasSession: !!session, error })
 
         if (session) {
-          console.log('Session found on attempt ' + attempt + ' - redirecting')
+          console.log('Session found on attempt ' + attempt + ' - redirecting to:', redirectPath)
           setTimeout(() => {
             router.replace(redirectPath)
+            // Force full refresh as fallback
             window.location.href = redirectPath
-          }, 300 * attempt)
+          }, 300 * attempt) // increase delay per attempt
           return
         }
 
+        // Wait 300ms before next attempt
         await new Promise(r => setTimeout(r, 300))
       }
 
-      console.log('No session after retries - showing login UI')
+      console.log('No session after all retries - showing login UI')
       setLoading(false)
     }
 
     checkSession()
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session ? 'session present' : 'no session')
-      if (session) {
-        console.log('Listener detected session - redirecting')
-        setTimeout(() => {
-          router.replace(redirectPath)
-          window.location.href = redirectPath
-        }, 500)
+    // Auth state listener with proper types
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event: AuthChangeEvent, session: Session | null) => {
+        console.log('Auth state changed:', event, session ? 'session present' : 'no session')
+        if (session) {
+          console.log('Listener detected session - redirecting')
+          setTimeout(() => {
+            router.replace(redirectPath)
+            window.location.href = redirectPath
+          }, 500)
+        }
       }
-    })
+    )
 
-    return () => listener.subscription.unsubscribe()
+    return () => {
+      console.log('Cleaning up auth listener')
+      listener.subscription.unsubscribe()
+    }
   }, [router, searchParams])
 
   if (loading) return <div className="text-xl">Checking session...</div>

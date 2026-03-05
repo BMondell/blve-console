@@ -1,5 +1,7 @@
 'use client'
 
+// CACHE BREAKER 2026-03-05 - FORCE DYNAMIC
+
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { useEffect, useState, useRef } from 'react'
@@ -130,3 +132,4 @@ export default function LoginPage() {
     </div>
   )
 }
+export const dynamic = 'force-dynamic';

@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js' // ← THIS LINE FIXES IT
 
 function LoginContent() {
   const router = useRouter()
@@ -13,7 +14,7 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Single Supabase client instance
+  // Single Supabase client
   const supabaseRef = useRef<any>(null)
   if (!supabaseRef.current) {
     supabaseRef.current = createClient(
@@ -29,62 +30,55 @@ function LoginContent() {
     const redirectPath = searchParams.get('redirect') || '/admin/dashboard'
     console.log('Redirect target from query:', redirectPath)
 
-    // Clear any leftover hash from callback
     if (window.location.hash) {
       console.log('Clearing callback hash fragment')
       window.location.hash = ''
     }
 
-    // Retry session check with delay
     const checkSession = async () => {
       for (let attempt = 1; attempt <= 4; attempt++) {
-        const response = await supabase.auth.getSession()
-        const session = response.data.session
-        const error = response.error
-
+        const { data: { session }, error } = await supabase.auth.getSession()
         console.log(`Session check attempt ${attempt}:`, {
-          fullResponse: response,
           hasSession: !!session,
-          session: session ? 'exists' : 'null',
-          user: session?.user?.email || 'none',
-          error: error ? error.message : 'no error'
+          sessionUser: session?.user?.email || 'none',
+          error: error?.message || 'no error'
         })
 
         if (session) {
-          console.log('Session FOUND on attempt ' + attempt + ' - redirecting to:', redirectPath)
+          console.log('Session found on attempt ' + attempt + ' - redirecting')
           setTimeout(() => {
             router.replace(redirectPath)
-            // Force full page reload as fallback
             window.location.href = redirectPath
           }, 500)
           return
         }
 
-        // Wait 400ms before next attempt
-        await new Promise(r => setTimeout(r, 400))
+        await new Promise(r => setTimeout(r, 300))
       }
 
-      console.log('No session after all retries - showing login UI')
+      console.log('No session after retries - showing login UI')
       setLoading(false)
     }
 
     checkSession()
 
-    // Auth state listener
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', {
-        event,
-        hasSession: !!session,
-        user: session?.user?.email || 'none'
-      })
-      if (session) {
-        console.log('Listener detected session - redirecting')
-        setTimeout(() => {
-          router.replace(redirectPath)
-          window.location.href = redirectPath
-        }, 500)
+    // Auth state listener with types
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event: AuthChangeEvent, session: Session | null) => {
+        console.log('Auth state changed:', {
+          event,
+          hasSession: !!session,
+          user: session?.user?.email || 'none'
+        })
+        if (session) {
+          console.log('Listener detected session - redirecting')
+          setTimeout(() => {
+            router.replace(redirectPath)
+            window.location.href = redirectPath
+          }, 500)
+        }
       }
-    })
+    )
 
     return () => {
       console.log('Cleaning up auth listener')
@@ -124,8 +118,10 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="text-xl">Loading login...</div>}>
-      <LoginContent />
-    </Suspense>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-blue-50">
+      <Suspense fallback={<div className="text-xl">Loading login...</div>}>
+        <LoginContent />
+      </Suspense>
+    </div>
   )
 }

@@ -105,22 +105,22 @@ function LoginContent() {
         {error && <p className="text-red-600 text-center mb-4">{error}</p>}
 
         <Auth
-          supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: '#2563eb',
-                  brandAccent: '#1d4ed8',
-                },
-              },
-            },
-          }}
-          providers={['google']}
-          onlyThirdPartyProviders={true}
-          redirectTo="https://blve-console-pcvm.vercel.app/auth/callback"
-        />
+  supabaseClient={supabase}
+  appearance={{
+    theme: ThemeSupa,
+    variables: {
+      default: {
+        colors: {
+          brand: '#2563eb',
+          brandAccent: '#1d4ed8',
+        },
+      },
+    },
+  }}
+  providers={['google']}
+  onlyThirdPartyProviders={true}
+  redirectTo="https://blve-console-pcvm.vercel.app/auth/callback"
+/>
       </div>
     </div>
   )

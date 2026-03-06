@@ -1,6 +1,4 @@
 'use client'
-
-
 // VISIBLE MARKER - LIVE ON 2026-03-05 - BART TEST
 
 import { Auth } from '@supabase/auth-ui-react'
@@ -115,7 +113,7 @@ function LoginContent() {
           }}
           providers={['google']}
           onlyThirdPartyProviders={true}
-          redirectTo={`${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`}
+          redirectTo="https://blve-console-pcvm.vercel.app/auth/callback"  // ← FIXED: hard-coded production URL
         />
       </div>
     </div>

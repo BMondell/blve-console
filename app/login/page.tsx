@@ -15,6 +15,12 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Debug: Log Supabase env vars on mount to confirm they are loaded
+  useEffect(() => {
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('Supabase Anon Key length:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 'missing')
+  }, [])
+
   // Single Supabase client instance
   const supabaseRef = useRef<any>(null)
   if (!supabaseRef.current) {

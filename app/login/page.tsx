@@ -31,6 +31,19 @@ function LoginContent() {
   }
   const supabase = supabaseRef.current
 
+  // CLEAN UP HASH FRAGMENT FROM URL AS EARLY AS POSSIBLE
+  useEffect(() => {
+    if (window.location.hash) {
+      // Remove hash without reloading or adding to history
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname + window.location.search
+      )
+      console.log('Hash fragment cleaned from URL')
+    }
+  }, []) // empty deps = run once on mount
+
   // Session check + auth listener
   useEffect(() => {
     console.log('Login page mounted - starting session check')
@@ -96,19 +109,6 @@ function LoginContent() {
       listener.subscription.unsubscribe()
     }
   }, [router, searchParams])
-
-  // CLEAN UP HASH FRAGMENT FROM URL AFTER TOKENS ARE READ
-  useEffect(() => {
-    if (window.location.hash) {
-      // Remove hash from URL without reloading page
-      window.history.replaceState(
-        {},
-        document.title,
-        window.location.pathname + window.location.search
-      )
-      console.log('Hash fragment cleaned from URL')
-    }
-  }, [])
 
   if (loading) return <div className="text-xl">Checking session...</div>
 

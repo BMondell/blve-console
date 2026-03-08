@@ -1,5 +1,5 @@
 // app/auth/callback/route.ts
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -9,31 +9,40 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
-  console.log('Callback hit - URL:', requestUrl.toString())
-  console.log('Code present:', !!code)
+  console.log('CALLBACK ROUTE HIT - Full URL:', requestUrl.toString())
+  console.log('Code (query param):', code || 'MISSING')
 
-  if (!code) {
-    console.log('No code provided - redirecting to login')
-    return NextResponse.redirect(new URL('/login?error=no_code', request.url))
+  const cookieStore = await cookies()
+
+  if (code) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          },
+        },
+      }
+    )
+
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (error) {
+      console.error('Session exchange failed:', error.message)
+    } else {
+      console.log('Session created from code')
+    }
+  } else {
+    console.log('No code param - likely implicit flow or direct access')
   }
 
-  const cookieStore = cookies()
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-
-  console.log('Exchanging code for session...')
-
-  const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
-
-  if (error) {
-    console.error('Session exchange failed:', error.message)
-    return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
-  }
-
-  console.log('Session created successfully')
-  console.log('User email:', session?.user?.email || 'none')
-  console.log('Access token length:', session?.access_token?.length || 0)
-
-  // Redirect to dashboard
-  const redirectUrl = new URL('/admin/dashboard', request.url)
-  return NextResponse.redirect(redirectUrl)
+  // Redirect to dashboard (even if no code)
+  return NextResponse.redirect(new URL('/admin/dashboard', request.url))
 }

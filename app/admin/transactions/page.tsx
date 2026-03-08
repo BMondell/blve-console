@@ -22,16 +22,16 @@ export default async function TransactionsPage() {
     }
   )
 
-  // More reliable server-side check: use getUser() instead of getSession()
+  // Use getUser() for more reliable server-side auth check
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    // No user → redirect to login
-    redirect('/login')
+    // Redirect to login and preserve the original requested page
+    const requestedPath = '/admin/transactions'
+    redirect(`/login?redirect=${encodeURIComponent(requestedPath)}`)
   }
 
-  // If we got here → user is authenticated
-  // Now fetch data...
+  // User is authenticated → fetch transactions
   const { data: transactions, error } = await supabase
     .from('transactions')
     .select(`
@@ -49,39 +49,39 @@ export default async function TransactionsPage() {
     .limit(50)
 
   if (error) {
-    console.error('Error loading transactions:', error)
+    console.error('Transactions fetch error:', error)
     return (
       <div className="p-8">
         <h1 className="text-2xl font-bold mb-4">Transactions</h1>
-        <p className="text-red-600">Failed to load: {error.message}</p>
+        <p className="text-red-600">Failed to load transactions: {error.message}</p>
       </div>
     )
   }
 
-  // Process transactions (commission calc etc.)
-  const processed = transactions?.map((tx: any) => {
-    const amount = tx.amount // assume dollars
+  // Process transactions: calculate 4% commission (recruiting org or BLVE default)
+  const processedTransactions = transactions?.map((tx: any) => {
+    const amount = tx.amount  // assume dollars; divide by 100 if stored in cents
     const recruitingOrg = tx.merchants?.organizations
     const recruitingOrgName = recruitingOrg?.name || 'BLVE (default)'
 
     const commissionRate = 0.04
-    const commission = amount * commissionRate
-    const net = amount - commission
+    const commissionAmount = amount * commissionRate
+    const netToMerchant = amount - commissionAmount
 
     return {
       ...tx,
       recruiting_org_name: recruitingOrgName,
-      commission: commission.toFixed(2),
-      net_to_merchant: net.toFixed(2),
+      commission_amount: commissionAmount.toFixed(2),
+      net_to_merchant: netToMerchant.toFixed(2),
       formatted_date: new Date(tx.created_at).toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
       }),
-      formatted_amount: `$${amount.toFixed(2)}`
+      formatted_amount: `$${amount.toFixed(2)}`,
     }
   }) || []
 
@@ -89,40 +89,64 @@ export default async function TransactionsPage() {
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-6">Transactions</h1>
 
-      {processed.length === 0 ? (
+      {processedTransactions.length === 0 ? (
         <p className="text-gray-500">No transactions found.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+          <table className="min-w-full divide-y divide-gray-200 bg-white">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Card Last 4</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Merchant</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recruiting Org</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commission (4%)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net to Merchant</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date/Time
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Card Last 4
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Member
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Merchant
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Recruiting Org (Gets Commission)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Commission (4%)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Net to Merchant
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {processed.map((tx: any) => (
+              {processedTransactions.map((tx: any) => (
                 <tr key={tx.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">{tx.formatted_date}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium">{tx.formatted_amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">**** **** **** {tx.card_last4 || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {tx.formatted_date}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {tx.formatted_amount}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    **** **** **** {tx.card_last4 || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {tx.members?.name || tx.members?.email || 'Unknown'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{tx.merchants?.business_name || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {tx.merchants?.business_name || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-700">
                     {tx.recruiting_org_name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
-                    ${tx.commission}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                    ${tx.commission_amount}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     ${tx.net_to_merchant}
                   </td>
                 </tr>

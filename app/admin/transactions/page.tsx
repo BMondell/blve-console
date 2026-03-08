@@ -4,19 +4,31 @@ import { redirect } from 'next/navigation'
 
 export default async function TransactionsPage() {
   const cookieStore = cookies()
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: () => cookieStore }
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
+        },
+      },
+    }
   )
 
-  // 1. Check session (protect the page)
+  // 1. Protect the page
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) {
     redirect('/login')
   }
 
-  // 2. Fetch transactions + joins
+  // 2. Fetch transactions (basic version - adjust columns/joins to your schema)
   const { data: transactions, error } = await supabase
     .from('transactions')
     .select(`
@@ -26,12 +38,12 @@ export default async function TransactionsPage() {
       card_last4,
       member_id,
       merchant_id,
-      members!member_id (name, email),           // join to members table
-      merchants!merchant_id (business_name, organization_id),  // join to merchants
-      merchants!merchant_id (organizations!organization_id (name))  // join recruiting org name
+      members!member_id (name, email),
+      merchants!merchant_id (business_name, organization_id),
+      merchants!merchant_id (organizations!organization_id (name))
     `)
     .order('created_at', { ascending: false })
-    .limit(50) // start basic — increase later
+    .limit(50)
 
   if (error) {
     console.error('Transactions fetch error:', error)
@@ -43,17 +55,14 @@ export default async function TransactionsPage() {
     )
   }
 
-  // 3. Calculate commission & split
+  // 3. Process data: calculate commission & split (4% to recruiting org or BLVE default)
   const processedTransactions = transactions?.map((tx: any) => {
-    const amount = tx.amount // assume dollars – divide by 100 if in cents
+    const amount = tx.amount // assume dollars; divide by 100 if stored in cents
     const recruitingOrg = tx.merchants?.organizations // from join
     const recruitingOrgName = recruitingOrg?.name || 'BLVE (default)'
 
-    // Commission: 4% to recruiting org, or BLVE if no org
     const commissionRate = 0.04
     const commissionAmount = amount * commissionRate
-
-    // Simple split (expand later with fees)
     const netToMerchant = amount - commissionAmount
 
     return {
@@ -89,7 +98,7 @@ export default async function TransactionsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Card Last 4</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Merchant</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recruiting Org (Getting Paid)</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recruiting Org (Getting Commission)</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commission (4%)</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net to Merchant</th>
               </tr>
@@ -99,7 +108,7 @@ export default async function TransactionsPage() {
                 <tr key={tx.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">{tx.formatted_date}</td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium">{tx.formatted_amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">**** **** **** {tx.card_last4}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">**** **** **** {tx.card_last4 || 'N/A'}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {tx.members?.name || tx.members?.email || 'Unknown'}
                   </td>

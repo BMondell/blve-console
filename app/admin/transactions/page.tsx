@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export default async function TransactionsPage() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()  // ← Await here to make it synchronous
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,13 +22,13 @@ export default async function TransactionsPage() {
     }
   )
 
-  // 1. Protect the page
+  // Protect the page
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) {
     redirect('/login')
   }
 
-  // 2. Fetch transactions (basic version - adjust columns/joins to your schema)
+  // Fetch transactions (adjust columns/joins to your actual schema)
   const { data: transactions, error } = await supabase
     .from('transactions')
     .select(`
@@ -55,10 +55,10 @@ export default async function TransactionsPage() {
     )
   }
 
-  // 3. Process data: calculate commission & split (4% to recruiting org or BLVE default)
+  // Process data: calculate commission (4% to recruiting org or BLVE default)
   const processedTransactions = transactions?.map((tx: any) => {
-    const amount = tx.amount // assume dollars; divide by 100 if stored in cents
-    const recruitingOrg = tx.merchants?.organizations // from join
+    const amount = tx.amount // assume dollars; if cents, divide by 100
+    const recruitingOrg = tx.merchants?.organizations
     const recruitingOrgName = recruitingOrg?.name || 'BLVE (default)'
 
     const commissionRate = 0.04

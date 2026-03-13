@@ -44,5 +44,6 @@ export async function GET(request: Request) {
   }
 
   // Redirect to dashboard (even if no code)
-  return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+  return NextResponse.redirect(new URL('/admin/transactions', request.url))
+
 }

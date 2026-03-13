@@ -1,6 +1,6 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
 export default async function TransactionsPage() {
   const cookieStore = await cookies()
@@ -13,43 +13,39 @@ export default async function TransactionsPage() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
+        // Next.js 16: no cookie writes in page.tsx
+        setAll() {
+          // no-op
         },
       },
     }
   )
 
-  // AUTH CHECK
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   if (!user) {
-    redirect(`/login?redirect=${encodeURIComponent('/admin/transactions')}`)
+    redirect(`/login?redirect=${encodeURIComponent("/admin/transactions")}`)
   }
 
-  // FETCH TRANSACTIONS (MATCHES YOUR REAL SCHEMA)
   const { data: transactions, error } = await supabase
-    .from('transactions')
-    .select(`
+    .from("transactions")
+    .select(
+      `
       id,
       external_tx_id,
       member_id,
       org_id,
-      sub_org_id,
-      merchant_id,
       mcc_code,
       amount,
       offer_percentage,
       routing_amount,
       blve_fee,
-      timestamp,
-      event_id,
-      beneficiary_org_id,
-      created_at,
-      updated_at
-    `)
-    .order('timestamp', { ascending: false })
+      timestamp
+    `
+    )
+    .order("timestamp", { ascending: false })
     .limit(100)
 
   if (error) {
@@ -61,21 +57,22 @@ export default async function TransactionsPage() {
     )
   }
 
-  // PROCESS DATA FOR UI
-  const processed = transactions?.map((tx) => ({
-    ...tx,
-    formatted_amount: `$${Number(tx.amount).toFixed(2)}`,
-    formatted_routing: `$${Number(tx.routing_amount).toFixed(2)}`,
-    formatted_blve_fee: `$${Number(tx.blve_fee).toFixed(2)}`,
-    formatted_timestamp: new Date(tx.timestamp).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    })
-  })) || []
+  const processed =
+    transactions?.map((tx) => {
+      const date = new Date(tx.timestamp)
+      const formatted_timestamp = date.toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+
+      return {
+        ...tx,
+        formatted_timestamp,
+        formatted_amount: `$${Number(tx.amount).toFixed(2)}`,
+        formatted_routing: `$${Number(tx.routing_amount).toFixed(2)}`,
+        formatted_blve_fee: `$${Number(tx.blve_fee).toFixed(2)}`,
+      }
+    }) || []
 
   return (
     <div className="p-8">
@@ -88,26 +85,54 @@ export default async function TransactionsPage() {
           <table className="min-w-full divide-y divide-gray-200 bg-white">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Routing Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BLVE Fee</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Offer %</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MCC</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">External Tx ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Timestamp
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Routing Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  BLVE Fee
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Offer %
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  MCC
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  External Tx ID
+                </th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-200 bg-white">
               {processed.map((tx) => (
                 <tr key={tx.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.formatted_timestamp}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tx.formatted_amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.formatted_routing}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.formatted_blve_fee}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.offer_percentage}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.mcc_code}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{tx.external_tx_id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {tx.formatted_timestamp}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {tx.formatted_amount}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {tx.formatted_routing}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {tx.formatted_blve_fee}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {tx.offer_percentage}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {tx.mcc_code}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {tx.external_tx_id}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -39,8 +39,10 @@ export default function OrgDetailPage() {
           (t: any) => t.org_id === orgId
         )
 
+        // 🔹 Members in this org OR any of its sub‑orgs
         const members = (json.members || []).filter(
-          (m: any) => m.org_id === orgId
+          (m: any) =>
+            m.org_id === orgId || subs.some((s: any) => s.id === m.org_id)
         )
 
         const subRoutingTotal = subs.reduce(

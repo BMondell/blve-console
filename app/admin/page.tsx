@@ -67,9 +67,29 @@ export default function AdminDashboard() {
             {orgs.map((org: any) => {
               const orgSubs = subs.filter((s: any) => s.parent_org_id === org.id)
 
+              // 🔹 Roll‑ups
+              const subRoutingTotal = orgSubs.reduce(
+                (sum: number, s: any) => sum + (s.routing_pool || 0),
+                0
+              )
+              const subMemberTotal = orgSubs.reduce(
+                (sum: number, s: any) => sum + (s.member_count || 0),
+                0
+              )
+              const subTxTotal = orgSubs.reduce(
+                (sum: number, s: any) => sum + (s.tx_count || 0),
+                0
+              )
+
+              const routingPoolTotal = (org.routing_pool || 0) + subRoutingTotal
+              const memberTotal = (org.member_count || 0) + subMemberTotal
+              const txTotal = (org.tx_count || 0) + subTxTotal
+
+              const avgTx = txTotal > 0 ? routingPoolTotal / txTotal : 0
+
               return (
                 <>
-                  {/* Parent Row */}
+                  {/* Parent Row WITH roll‑ups */}
                   <tr
                     key={org.id}
                     className="cursor-pointer bg-gray-50 hover:bg-gray-100"
@@ -83,13 +103,13 @@ export default function AdminDashboard() {
                     <td className="px-4 py-2 font-semibold">
                       {expanded[org.id] ? "▼" : "▶"} {org.name}
                     </td>
-                    <td className="px-4 py-2">${org.routing_pool}</td>
-                    <td className="px-4 py-2">{org.member_count}</td>
-                    <td className="px-4 py-2">{org.tx_count}</td>
-                    <td className="px-4 py-2">{org.tx_avg.toFixed(2)}</td>
+                    <td className="px-4 py-2">${routingPoolTotal.toFixed(2)}</td>
+                    <td className="px-4 py-2">{memberTotal}</td>
+                    <td className="px-4 py-2">{txTotal}</td>
+                    <td className="px-4 py-2">{avgTx.toFixed(2)}</td>
                   </tr>
 
-                  {/* Sub-org Rows */}
+                  {/* Sub‑org Rows */}
                   {expanded[org.id] &&
                     orgSubs.map((sub: any) => (
                       <tr key={sub.id} className="bg-white">

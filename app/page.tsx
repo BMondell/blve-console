@@ -1,38 +1,63 @@
-import Link from 'next/link'
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
+export default function AdminDashboard() {
+  const [memberCount, setMemberCount] = useState<number | null>(null);
+  const [orgCount, setOrgCount] = useState<number | null>(null);
+  const [txCount, setTxCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function loadStats() {
+      const { count: members } = await supabase
+        .from("members")
+        .select("*", { count: "exact", head: true });
+
+      const { count: orgs } = await supabase
+        .from("orgs")
+        .select("*", { count: "exact", head: true });
+
+      const { count: txs } = await supabase
+        .from("transactions")
+        .select("*", { count: "exact", head: true });
+
+      setMemberCount(members ?? 0);
+      setOrgCount(orgs ?? 0);
+      setTxCount(txs ?? 0);
+    }
+
+    loadStats();
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-blue-50 p-6">
-      <div className="text-center max-w-3xl">
-        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-          Welcome to BLVE Console
-        </h1>
-        
-        <p className="text-xl text-gray-700 mb-10">
-          Manage your organizations, routing pools, members, and transactions in one place.
-        </p>
+    <div className="space-y-8">
+      <h1 className="text-3xl font-bold">BLVE Admin Dashboard</h1>
 
-        <div className="flex flex-col sm:flex-row gap-6 justify-center">
-          <Link 
-            href="/login"
-            className="px-8 py-4 bg-blue-600 text-white text-lg font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            Admin Login
-          </Link>
-          
-          <Link 
-            href="/?org=mas"
-            className="px-8 py-4 bg-white text-blue-600 text-lg font-medium rounded-xl border-2 border-blue-600 hover:bg-blue-50 transition-colors shadow-lg"
-          >
-            View Public Dashboard (MAS)
-          </Link>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-6 bg-white rounded-xl shadow border">
+          <h2 className="text-lg font-semibold">Members</h2>
+          <p className="text-3xl font-bold mt-2">{memberCount ?? "…"}</p>
         </div>
 
-        <p className="mt-12 text-gray-500 text-sm">
-          Powered by Supabase & Next.js • © 2026 BLVE
+        <div className="p-6 bg-white rounded-xl shadow border">
+          <h2 className="text-lg font-semibold">Organizations</h2>
+          <p className="text-3xl font-bold mt-2">{orgCount ?? "…"}</p>
+        </div>
+
+        <div className="p-6 bg-white rounded-xl shadow border">
+          <h2 className="text-lg font-semibold">Transactions</h2>
+          <p className="text-3xl font-bold mt-2">{txCount ?? "…"}</p>
+        </div>
+      </div>
+
+      <div className="p-6 bg-white rounded-xl shadow border">
+        <h2 className="text-xl font-semibold mb-4">Identity Layer</h2>
+        <p className="text-gray-600">
+          This section will show identity‑layer metrics, routing pools, and
+          org‑level breakdowns.
         </p>
       </div>
     </div>
-  )
+  );
 }
-

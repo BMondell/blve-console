@@ -1,76 +1,73 @@
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
-import { redirect } from "next/navigation";
+"use client"
 
-export default async function MembersPage() {
-  // Auth check
-  const cookieStore = await cookies();
+import { useEffect, useState } from "react"
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {}
-      }
-    }
-  );
+export default function MembersPage() {
+  const [data, setData] = useState<any>(null)
 
-  const { data: { user } } = await supabase.auth.getUser();
+  useEffect(() => {
+    fetch("/api/org-dashboard")
+      .then((res) => res.json())
+      .then((json) => setData(json))
+  }, [])
 
-  if (!user) {
-    redirect(`/login?redirect=${encodeURIComponent("/admin/members")}`);
-  }
+  if (!data) return <div className="p-6">Loading...</div>
 
-  // Fetch members
-  const { data: members, error } = await supabase
-    .from("members")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const members = data.members || []
+  const orgs = data.orgs || []
 
-  if (error) {
-    console.error(error);
-    return <div>Error loading members.</div>;
-  }
+  // Build lookup maps
+  const orgMap: Record<string, any> = Object.fromEntries(
+    orgs.map((o: any) => [o.id, o])
+  )
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Members</h1>
+    <div className="p-6 space-y-6">
+      <h1 className="text-3xl font-bold">Members</h1>
 
-      {(!members || members.length === 0) && (
-        <p className="text-gray-600">No members found.</p>
-      )}
-
-      {members && members.length > 0 && (
-        <table className="min-w-full border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">Name</th>
-              <th className="p-2 border">Email</th>
-              <th className="p-2 border">Org</th>
-              <th className="p-2 border">Joined</th>
+      <div className="bg-white rounded-xl shadow border overflow-hidden">
+        <table className="min-w-full">
+          <thead>
+            <tr className="bg-gray-100 text-left">
+              <th className="px-4 py-2">Name</th>
+              <th className="px-4 py-2">Email</th>
+              <th className="px-4 py-2">Sub‑Org</th>
+              <th className="px-4 py-2">Parent Org</th>
+              <th className="px-4 py-2">Joined</th>
             </tr>
           </thead>
+
           <tbody>
-            {members.map((m) => (
-              <tr key={m.id} className="border-t">
-                <td className="p-2 border">{m.name || "—"}</td>
-                <td className="p-2 border">{m.email || "—"}</td>
-                <td className="p-2 border">{m.org_id || "—"}</td>
-                <td className="p-2 border">
-                  {m.created_at
-                    ? new Date(m.created_at).toLocaleDateString()
-                    : "—"}
-                </td>
-              </tr>
-            ))}
+            {members.map((m: any) => {
+              const subOrg = orgMap[m.org_id]
+              const parentOrg = subOrg
+                ? orgMap[subOrg.parent_org_id]
+                : null
+
+              return (
+                <tr key={m.id} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-2 font-medium">{m.name}</td>
+                  <td className="px-4 py-2">{m.email}</td>
+
+                  {/* Sub‑Org */}
+                  <td className="px-4 py-2">
+                    {subOrg ? subOrg.name : "—"}
+                  </td>
+
+                  {/* Parent Org */}
+                  <td className="px-4 py-2">
+                    {parentOrg ? parentOrg.name : "—"}
+                  </td>
+
+                  <td className="px-4 py-2">
+                    {new Date(m.created_at).toLocaleDateString()}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
-      )}
+      </div>
     </div>
-  );
+  )
 }
-

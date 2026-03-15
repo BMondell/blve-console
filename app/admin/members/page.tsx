@@ -41,7 +41,15 @@ export default function MembersPage() {
 
               return (
                 <tr key={m.id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2 font-medium">{m.name}</td>
+                  <td className="px-4 py-2 font-medium">
+  <a
+    href={`/admin/members/${m.id}`}
+    className="underline hover:text-blue-600"
+  >
+    {m.name}
+  </a>
+</td>
+
                   <td className="px-4 py-2">{m.email}</td>
                   <td className="px-4 py-2">{subOrg?.name || "—"}</td>
                   <td className="px-4 py-2">{parentOrg?.name || "—"}</td>

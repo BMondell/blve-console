@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import IdentityLayer from "@/components/IdentityLayer";
 
 export default function AdminDashboard() {
   const [memberCount, setMemberCount] = useState<number | null>(null);
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">BLVE Admin Dashboard</h1>
 
+      {/* Top-level metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 bg-white rounded-xl shadow border">
           <h2 className="text-lg font-semibold">Members</h2>
@@ -51,13 +53,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="p-6 bg-white rounded-xl shadow border">
-        <h2 className="text-xl font-semibold mb-4">Identity Layer</h2>
-        <p className="text-gray-600">
-          This section will show identity‑layer metrics, routing pools, and
-          org‑level breakdowns.
-        </p>
-      </div>
+      {/* Identity Layer (live data) */}
+      <IdentityLayer />
     </div>
   );
 }

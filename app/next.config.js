@@ -1,13 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
-    config.ignoreWarnings = [
-      { module: /supabase\/functions/ }
-    ];
-    return config;
-  },
   typescript: {
-    tsconfigPath: "./tsconfig.json",
+    // We'll keep this if specific tsconfig is needed, but usually default is fine
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
   },
 };
 

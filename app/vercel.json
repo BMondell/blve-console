@@ -1,5 +1,4 @@
 {
-  "ignoreCommand": "echo 'Ignoring supabase functions'",
   "functions": {
     "api/**": {
       "runtime": "nodejs20.x"

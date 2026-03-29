@@ -1,0 +1,224 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+
+export default function Dashboard() {
+  const [session, setSession] = useState<any>(null)
+  const [orgData, setOrgData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({  { session } }) => {
+      setSession(session)
+    })
+
+    const {
+       { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase])
+
+  useEffect(() => {
+    if (session) {
+      fetchOrgDashboard()
+    }
+  }, [session])
+
+  const fetchOrgDashboard = async () => {
+    setLoading(true)
+    const {  data, error } = await supabase
+      .from('org_dashboard_view')
+      .select('*')
+      .eq('slug', 'fiu')
+      .single()
+
+    if (error) {
+      console.error('Error fetching dashboard:', error)
+    } else {
+      setOrgData(data)
+    }
+    setLoading(false)
+  }
+
+  const handleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    })
+    if (error) console.error('Sign in error:', error)
+  }
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) console.error('Sign out error:', error)
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 flex flex-col items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="text-6xl font-bold mb-4">BLVΞ</div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+            Routing belief without extraction
+          </h1>
+          <p className="text-lg text-gray-600 mb-8">
+            FIU Athletics admin console — see real-time routing impact
+          </p>
+          <button
+            onClick={handleSignIn}
+            className="bg-black text-white px-8 py-4 rounded-xl font-medium text-lg hover:bg-gray-900 transition-colors shadow-lg"
+          >
+            Sign in with Google
+          </button>
+          <p className="mt-6 text-sm text-gray-500">
+            Only authorized FIU Athletics staff can access this console
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <div className="text-3xl font-bold">BLVΞ</div>
+            <div className="text-gray-600">| FIU Athletics Console</div>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="text-gray-600 hover:text-gray-900 font-medium"
+          >
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading routing data...</p>
+          </div>
+        ) : orgData ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+              <h3 className="text-gray-500 text-sm font-medium mb-2">TOTAL ROUTING POOL</h3>
+              <p className="text-3xl font-bold text-gray-900">${orgData.routing_pool.toFixed(2)}</p>
+              <p className="mt-1 text-green-600 text-sm font-medium">
+                +${orgData.monthly_routing.toFixed(2)} this month
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+              <h3 className="text-gray-500 text-sm font-medium mb-2">MONTHLY TRANSACTIONS</h3>
+              <p className="text-3xl font-bold text-gray-900">{orgData.monthly_tx.toLocaleString()}</p>
+              <p className="mt-1 text-gray-600 text-sm">
+                from {orgData.active_members.toLocaleString()} community members
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+              <h3 className="text-gray-500 text-sm font-medium mb-2">AVG ROUTING PER TX</h3>
+              <p className="text-3xl font-bold text-gray-900">
+                ${(orgData.monthly_routing / Math.max(orgData.monthly_tx, 1)).toFixed(2)}
+              </p>
+              <p className="mt-1 text-gray-600 text-sm">
+                covenant-preserving (88% to FIU)
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Routing Activity</h2>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                  <div>
+                    <div className="font-medium text-gray-900">Publix • Miami</div>
+                    <div className="text-sm text-gray-500">Feb 11, 2026 • 2:47 PM</div>
+                  </div>
+                  <div className="font-bold text-green-600">+$0.49</div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-6 text-center text-gray-500 text-sm">
+              All routing is automatic — no behavior change required from members
+            </p>
+          </div>
+
+          <div className="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-purple-100">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Request Merchant Boost</h2>
+            <p className="text-gray-600 mb-4">
+              Coordinate with merchants to increase routing during key events (Homecoming, bowl games, etc.)
+            </p>
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Merchant</label>
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <option>Publix</option>
+                    <option>Target</option>
+                    <option>Starbucks</option>
+                    <option>Amazon</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Boost to</label>
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <option>2.0%</option>
+                    <option>2.5%</option>
+                    <option>3.0%</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <option>7 days (Homecoming Week)</option>
+                    <option>14 days (Bowl Game Prep)</option>
+                    <option>30 days (Recruiting Season)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Value Exchange</label>
+                <input
+                  type="text"
+                  placeholder="We'll feature you in 250K alumni newsletter + social media"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <button className="w-full bg-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-purple-700 transition-colors">
+                Request Boost
+              </button>
+              <p className="mt-3 text-xs text-gray-500 text-center">
+                ⚠️ Covenant rule: No member targeting — boosts apply to all FIU-linked cards at merchant locations
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            No organization data found. Contact BLVΞ support.
+          </div>
+        )}
+      </main>
+
+      <footer className="bg-white border-t border-gray-100 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-500 text-sm">
+          <p>BLVΞ Partners, PBC — Routing belief without extraction since 2026</p>
+          <p className="mt-1">
+            Covenant-preserving infrastructure • 88% routing pool • 12% infrastructure fee
+          </p>
+        </div>
+      </footer>
+    </div>
+  )
+}

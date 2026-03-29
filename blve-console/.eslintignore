@@ -1,0 +1,19 @@
+# Supabase Edge Functions (Deno runtime)
+supabase/
+
+# Build and dependency directories
+node_modules/
+.next/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+*~

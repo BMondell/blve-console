@@ -1,26 +1,48 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_FUNCTION_URL =
-  process.env.SUPABASE_FUNCTION_ORG_DASHBOARD_URL!;
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
+export async function GET() {
+  try {
+    // Fetch orgs
+    const { data: orgs, error: orgError } = await supabase
+      .from("organizations")
+      .select("*");
 
-  const url = new URL(SUPABASE_FUNCTION_URL);
-  if (id) {
-    url.searchParams.set("id", id);
+    if (orgError) throw orgError;
+
+    // Fetch members
+    const { data: members, error: memberError } = await supabase
+      .from("members")
+      .select("*");
+
+    if (memberError) throw memberError;
+
+    // Fetch routing summary
+    const { data: routing, error: routingError } = await supabase
+      .from("routing")
+      .select("*");
+
+    if (routingError) throw routingError;
+
+    return NextResponse.json(
+      {
+        success: true,
+        orgs,
+        members,
+        routing,
+      },
+      { status: 200 }
+    );
+  } catch (err: any) {
+    console.error("org-dashboard error:", err);
+    return NextResponse.json(
+      { success: false, error: err.message },
+      { status: 500 }
+    );
   }
-
-  const res = await fetch(url.toString(), {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      // This is the missing piece:
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-    },
-  });
-
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
 }

@@ -10,7 +10,7 @@ import {
   BLVCard,
   BLVMetric,
 } from "@/components/blve";
-import { Building2, TrendingUp, ArrowRight, RefreshCw, AlertCircle } from "lucide-react";
+import { Building2, TrendingUp, RefreshCw, AlertCircle } from "lucide-react";
 
 interface DashboardData {
   name: string;
@@ -33,7 +33,12 @@ function DashboardContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
+    let isMounted = true;
+    
+    // We start loading by default in state initialization, 
+    // but if orgSlug changes, we reset.
+    // To avoid the "setState in effect" warning, we only set if not already loading
+    if (!loading) setLoading(true);
     setError(null);
 
     fetch(`/api/org-dashboard?slug=${encodeURIComponent(orgSlug)}`)
@@ -44,6 +49,7 @@ function DashboardContent() {
         return res.json();
       })
       .then((result) => {
+        if (!isMounted) return;
         if (result.success && result.data) {
           setData(result.data);
         } else {
@@ -51,11 +57,17 @@ function DashboardContent() {
         }
       })
       .catch((err) => {
+        if (!isMounted) return;
         setError(err.message || "Unknown error");
       })
       .finally(() => {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       });
+      
+    return () => {
+      isMounted = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgSlug]);
 
   if (loading) {

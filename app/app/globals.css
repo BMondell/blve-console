@@ -1,166 +1,49 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* --- Tailwind v4 core import --- */
+@import "tailwindcss";
 
-/* BLVΞ Command Center Design System - CSS Variables */
+/* --- BLVΞ Design Tokens --- */
 :root {
-  /* Background Colors */
   --blv-bg: #0F1115;
   --blv-card: #1A1D22;
-  --blv-bg-secondary: #1A1D22;
-  
-  /* Border & Dividers */
   --blv-border: rgba(255, 255, 255, 0.05);
-  
-  /* Text Colors */
+
   --blv-text-primary: #E5E7EB;
   --blv-text-secondary: #9CA3AF;
   --blv-text-tertiary: #6B7280;
-  
-  /* Semantic Colors */
+
   --blv-green: #22c55e;
   --blv-red: #ef4444;
   --blv-blue: #3b82f6;
   --blv-amber: #f59e0b;
   --blv-purple: #6366f1;
-  --blv-accent: #7C3AED;
-  
-  /* Spacing Scale */
-  --blv-xs: 0.25rem;
-  --blv-sm: 0.5rem;
-  --blv-md: 1rem;
-  --blv-lg: 1.5rem;
-  --blv-xl: 2rem;
-  --blv-2xl: 3rem;
-  
-  /* Border Radius */
-  --blv-radius-sm: 0.375rem;
-  --blv-radius-md: 0.5rem;
-  --blv-radius-lg: 0.75rem;
-  --blv-radius-xl: 1rem;
-  --blv-radius-2xl: 1.5rem;
 }
 
-/* Dark Mode (default for BLVΞ) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --blv-bg: #0F1115;
-    --blv-card: #1A1D22;
-    --blv-bg-secondary: #1A1D22;
-    --blv-border: rgba(255, 255, 255, 0.05);
-    --blv-text-primary: #E5E7EB;
-    --blv-text-secondary: #9CA3AF;
-    --blv-text-tertiary: #6B7280;
-  }
+/* --- Global Reset / Body Styling --- */
+html, body {
+  background: var(--blv-bg);
+  color: var(--blv-text-primary);
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif;
 }
 
-/* Global Styles */
-* {
-  @apply transition-colors duration-200;
+/* --- Utility Helpers (Optional) --- */
+.border-blv {
+  border-color: var(--blv-border);
 }
 
-html {
-  @apply bg-[var(--blv-bg)] text-[var(--blv-text-primary)];
+.text-primary {
+  color: var(--blv-text-primary);
 }
 
-body {
-  @apply bg-[var(--blv-bg)] text-[var(--blv-text-primary)] antialiased;
+.text-secondary {
+  color: var(--blv-text-secondary);
 }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  @apply w-2 h-2;
+.text-tertiary {
+  color: var(--blv-text-tertiary);
 }
 
-::-webkit-scrollbar-track {
-  @apply bg-[var(--blv-bg-secondary)];
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-[var(--blv-text-tertiary)] rounded-[var(--blv-radius-md)] hover:bg-[var(--blv-text-secondary)];
-}
-
-/* Focus States */
-:focus-visible {
-  @apply outline-none ring-2 ring-[var(--blv-accent)] ring-offset-2 ring-offset-[var(--blv-bg)];
-}
-
-/* Smooth Animations */
-@layer components {
-  .blv-fade-in {
-    @apply animate-fade-in;
-  }
-
-  .blv-slide-up {
-    @apply animate-slide-up;
-  }
-
-  /* Card Component */
-  .blv-card {
-    @apply bg-[var(--blv-card)] border border-[var(--blv-border)] rounded-[var(--blv-radius-lg)] p-[var(--blv-lg)];
-  }
-
-  /* Button Styles */
-  .blv-btn {
-    @apply px-[var(--blv-lg)] py-[var(--blv-md)] rounded-[var(--blv-radius-lg)] font-bold transition-all duration-300;
-  }
-
-  .blv-btn-primary {
-    @apply blv-btn bg-[var(--blv-accent)] text-[var(--blv-bg)] hover:shadow-[0_0_20px_rgba(124,58,237,0.3)];
-  }
-
-  .blv-btn-secondary {
-    @apply blv-btn border border-[var(--blv-border)] text-[var(--blv-text-secondary)] hover:bg-[var(--blv-bg-secondary)];
-  }
-
-  /* Text Utilities */
-  .blv-text-primary {
-    @apply text-[var(--blv-text-primary)];
-  }
-
-  .blv-text-secondary {
-    @apply text-[var(--blv-text-secondary)];
-  }
-
-  .blv-text-tertiary {
-    @apply text-[var(--blv-text-tertiary)];
-  }
-
-  /* Background Utilities */
-  .blv-bg-primary {
-    @apply bg-[var(--blv-bg)];
-  }
-
-  .blv-bg-secondary {
-    @apply bg-[var(--blv-bg-secondary)];
-  }
-
-  .blv-bg-card {
-    @apply bg-[var(--blv-card)];
-  }
-
-  /* Border Utilities */
-  .blv-border {
-    @apply border-[var(--blv-border)];
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.bg-card {
+  background: var(--blv-card);
 }

@@ -23,7 +23,7 @@ export const BLVTotalsRow: React.FC<BLVTotalsRowProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-blv-lg ${className}`}>
+    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[var(--blv-lg)] ${className}`}>
       {metrics.map((metric, idx) => (
         <BLVCard key={idx} hoverable>
           <BLVMetric

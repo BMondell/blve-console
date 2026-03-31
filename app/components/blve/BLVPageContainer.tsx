@@ -15,13 +15,13 @@ export const BLVPageContainer: React.FC<BLVPageContainerProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`min-h-screen bg-blv-bg p-blv-xl ${className}`}>
+    <div className={`min-h-screen bg-[var(--blv-bg)] p-[var(--blv-xl)] ${className}`}>
       <div className="max-w-7xl mx-auto space-y-blv-2xl">
         {/* Header */}
-        <div className="space-y-blv-md">
-          <h1 className="text-blv-3xl font-bold text-blv-text">{title}</h1>
+        <div className="space-y-[var(--blv-md)]">
+          <h1 className="text-[1.875rem] font-bold text-[var(--blv-text-primary)]">{title}</h1>
           {subtitle && (
-            <p className="text-blv-text-secondary text-blv-base">{subtitle}</p>
+            <p className="text-[var(--blv-text-primary)]-secondary text-[1rem]">{subtitle}</p>
           )}
         </div>
 

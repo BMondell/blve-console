@@ -15,13 +15,13 @@ export const BLVSectionHeader: React.FC<BLVSectionHeaderProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`space-y-blv-md ${className}`}>
-      <div className="flex items-center gap-blv-md">
-        {icon && <div className="text-blv-accent">{icon}</div>}
-        <h2 className="text-blv-2xl font-bold text-blv-text">{title}</h2>
+    <div className={`space-y-[var(--blv-md)] ${className}`}>
+      <div className="flex items-center gap-[var(--blv-md)]">
+        {icon && <div className="text-[var(--blv-accent)]">{icon}</div>}
+        <h2 className="text-[1.5rem] font-bold text-[var(--blv-text-primary)]">{title}</h2>
       </div>
       {subtitle && (
-        <p className="text-blv-text-secondary text-blv-base">{subtitle}</p>
+        <p className="text-[var(--blv-text-primary)]-secondary text-[1rem]">{subtitle}</p>
       )}
     </div>
   );

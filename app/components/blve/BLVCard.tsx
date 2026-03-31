@@ -18,8 +18,8 @@ export const BLVCard: React.FC<BLVCardProps> = ({
     <div
       onClick={onClick}
       className={`
-        bg-blv-bg-secondary border border-blv-border rounded-blv-xl p-blv-lg
-        ${hoverable ? "hover:border-blv-accent hover:shadow-blv-glow transition-all duration-300 cursor-pointer" : ""}
+        bg-[var(--blv-card)] border border-[var(--blv-border)] rounded-[var(--blv-radius-xl)] p-[var(--blv-lg)]
+        ${hoverable ? "hover:border-[var(--blv-accent)] hover:shadow-[0_0_20px_rgba(124,58,237,0.3)] transition-all duration-300 cursor-pointer" : ""}
         ${className}
       `}
     >

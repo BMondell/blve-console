@@ -22,23 +22,23 @@ export const BLVMetric: React.FC<BLVMetricProps> = ({
   className = "",
 }) => {
   const sizeClasses = {
-    sm: "text-blv-lg",
-    md: "text-blv-2xl",
-    lg: "text-blv-3xl",
+    sm: "text-[1.125rem]",
+    md: "text-[1.5rem]",
+    lg: "text-[1.875rem]",
   };
 
   return (
-    <div className={`space-y-blv-md ${className}`}>
+    <div className={`space-y-[var(--blv-md)] ${className}`}>
       <div className="flex items-center justify-between">
-        <p className="text-blv-text-secondary text-blv-sm font-medium">{label}</p>
-        {icon && <div className="text-blv-text-tertiary flex-shrink-0">{icon}</div>}
+        <p className="text-[var(--blv-text-primary)]-secondary text-[0.875rem] font-medium">{label}</p>
+        {icon && <div className="text-[var(--blv-text-primary)]-tertiary flex-shrink-0">{icon}</div>}
       </div>
-      <p className={`${sizeClasses[size]} font-bold text-blv-text`}>
+      <p className={`${sizeClasses[size]} font-bold text-[var(--blv-text-primary)]`}>
         {value}
       </p>
       {trend && (
         <p
-          className={`text-blv-sm font-medium ${
+          className={`text-[0.875rem] font-medium ${
             trend.direction === "up" ? "text-green-500" : "text-red-500"
           }`}
         >

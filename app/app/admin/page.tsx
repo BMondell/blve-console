@@ -33,8 +33,8 @@ export default function AdminOverview() {
   if (loading) {
     return (
       <BLVPageContainer title="Admin Dashboard" subtitle="Comprehensive overview of the BLVΞ network performance">
-        <div className="flex items-center justify-center py-blv-2xl">
-          <RefreshCw className="animate-spin text-blv-accent" size={40} />
+        <div className="flex items-center justify-center py-[var(--blv-2xl)]">
+          <RefreshCw className="animate-spin text-[var(--blv-accent)]" size={40} />
         </div>
       </BLVPageContainer>
     );
@@ -44,7 +44,7 @@ export default function AdminOverview() {
     return (
       <BLVPageContainer title="Admin Dashboard" subtitle="Comprehensive overview of the BLVΞ network performance">
         <BLVCard>
-          <div className="flex items-center gap-blv-lg text-red-400">
+          <div className="flex items-center gap-[var(--blv-lg)] text-red-400">
             <AlertCircle size={24} />
             <p>{error}</p>
           </div>
@@ -75,15 +75,15 @@ export default function AdminOverview() {
           subtitle="Health and activity metrics for each organization"
           icon={<Building2 size={20} />} 
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-blv-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--blv-lg)]">
           {data?.orgs?.map((org: any) => (
             <BLVCard key={org.id} hoverable>
               <div className="space-y-blv-lg">
                 <div>
-                  <h3 className="text-blv-lg font-bold text-blv-text">{org.name}</h3>
-                  <p className="text-blv-xs text-blv-text-tertiary font-mono mt-blv-sm">{org.slug}</p>
+                  <h3 className="text-[1.125rem] font-bold text-[var(--blv-text-primary)]">{org.name}</h3>
+                  <p className="text-[0.75rem] text-[var(--blv-text-primary)]-tertiary font-mono mt-[var(--blv-sm)]">{org.slug}</p>
                 </div>
-                <div className="grid grid-cols-2 gap-blv-md">
+                <div className="grid grid-cols-2 gap-[var(--blv-md)]">
                   <BLVMetric label="Members" value={org.member_count || 0} size="sm" />
                   <BLVMetric label="Routed" value={`$${(org.routed_sum || 0).toLocaleString()}`} size="sm" />
                 </div>
@@ -102,7 +102,7 @@ export default function AdminOverview() {
           subtitle="Real-time transaction volume and routing metrics"
           icon={<TrendingUp size={20} />} 
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-blv-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--blv-lg)]">
           <BLVCard>
             <BLVMetric 
               label="Total Transactions" 

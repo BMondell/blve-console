@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head />
-      <body className="bg-blv-bg text-blv-text">
+      <body className="bg-[var(--blv-bg)] text-[var(--blv-text-primary)]">
         <div className="flex h-screen">
           {/* Sidebar */}
           <Sidebar />

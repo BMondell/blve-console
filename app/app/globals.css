@@ -1,3 +1,66 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* BLVΞ Command Center Design System */
+
+* {
+  @apply transition-colors duration-200;
+}
+
+html {
+  @apply bg-blv-bg text-blv-text;
+}
+
+body {
+  @apply bg-blv-bg text-blv-text antialiased;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-blv-bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-blv-text-tertiary rounded-blv-md hover:bg-blv-text-secondary;
+}
+
+/* Focus States */
+:focus-visible {
+  @apply outline-none ring-2 ring-blv-accent ring-offset-2 ring-offset-blv-bg;
+}
+
+/* Smooth Animations */
+@layer components {
+  .blv-fade-in {
+    @apply animate-fade-in;
+  }
+
+  .blv-slide-up {
+    @apply animate-slide-up;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

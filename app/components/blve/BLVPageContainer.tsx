@@ -1,40 +1,34 @@
 "use client";
-
 import React from "react";
 
 interface BLVPageContainerProps {
-  children: React.ReactNode;
-  title?: string;
+  title: string;
   subtitle?: string;
+  children: React.ReactNode;
   className?: string;
 }
 
-/**
- * BLVΞPageContainer – A page wrapper component following the BLVΞ design system.
- * 
- * Features:
- * - Consistent page padding (p-6)
- * - Consistent spacing (space-y-6)
- * - Light gray background (bg-gray-50)
- * - Optional title and subtitle
- * - Ensures all content follows BLVΞ standards
- */
 export const BLVPageContainer: React.FC<BLVPageContainerProps> = ({
-  children,
   title,
   subtitle,
+  children,
   className = "",
 }) => {
   return (
-    <div className={`min-h-screen bg-gray-50 ${className}`}>
-      <div className="p-6 space-y-6">
-        {(title || subtitle) && (
-          <div className="space-y-1">
-            {title && <h1 className="text-3xl font-bold text-gray-900">{title}</h1>}
-            {subtitle && <p className="text-gray-600 text-sm">{subtitle}</p>}
-          </div>
-        )}
-        <div className="space-y-6">{children}</div>
+    <div className={`min-h-screen bg-blv-bg p-blv-xl ${className}`}>
+      <div className="max-w-7xl mx-auto space-y-blv-2xl">
+        {/* Header */}
+        <div className="space-y-blv-md">
+          <h1 className="text-blv-3xl font-bold text-blv-text">{title}</h1>
+          {subtitle && (
+            <p className="text-blv-text-secondary text-blv-base">{subtitle}</p>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="space-y-blv-2xl">
+          {children}
+        </div>
       </div>
     </div>
   );

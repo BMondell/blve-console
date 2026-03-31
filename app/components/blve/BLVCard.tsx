@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 
 interface BLVCardProps {
@@ -9,16 +8,6 @@ interface BLVCardProps {
   hoverable?: boolean;
 }
 
-/**
- * BLVΞCard – A foundational card component following the BLVΞ design system.
- * 
- * Features:
- * - White background with rounded-xl corners
- * - Soft shadow (shadow-sm) and subtle border (border-gray-100)
- * - Consistent padding (p-6)
- * - Optional hover states with smooth transitions
- * - Fully responsive and accessible
- */
 export const BLVCard: React.FC<BLVCardProps> = ({
   children,
   className = "",
@@ -29,9 +18,8 @@ export const BLVCard: React.FC<BLVCardProps> = ({
     <div
       onClick={onClick}
       className={`
-        bg-white rounded-xl p-6 shadow-sm border border-gray-100
-        ${hoverable ? "hover:shadow-md transition-shadow duration-200" : ""}
-        ${onClick ? "cursor-pointer" : ""}
+        bg-blv-bg-secondary border border-blv-border rounded-blv-xl p-blv-lg
+        ${hoverable ? "hover:border-blv-accent hover:shadow-blv-glow transition-all duration-300 cursor-pointer" : ""}
         ${className}
       `}
     >

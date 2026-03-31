@@ -19,6 +19,7 @@ import {
   BLVSeparationLine,
   BLVSectionHeader,
   BLVCard,
+  type Metric,
 } from "@/components/blve";
 
 export default function MerchantsPage() {
@@ -70,8 +71,9 @@ export default function MerchantsPage() {
   }
 
   const merchants = data?.merchants || [];
-  
-  const totalsMetrics = [
+
+  // ⭐ FINAL FIX — typed array + literal directions
+  const totalsMetrics: Metric[] = [
     {
       label: "Total Merchants",
       value: merchants.length,

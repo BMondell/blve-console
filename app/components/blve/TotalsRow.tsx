@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 
 interface TotalMetric {
@@ -12,30 +11,36 @@ interface TotalsRowProps {
   metrics: TotalMetric[];
 }
 
+/**
+ * TotalsRow — Executive KPI row (legacy wrapper).
+ */
 export const TotalsRow: React.FC<TotalsRowProps> = ({ metrics }) => {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics.map((metric, index) => (
           <div
             key={index}
-            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"
+            className="bg-[#111418] border border-[rgba(255,255,255,0.08)] rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.4),0_4px_16px_rgba(0,0,0,0.3)] transition-all duration-200 hover:border-[rgba(255,255,255,0.18)]"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">{metric.label}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {metric.value}
+                <p className="text-sm font-medium text-[rgba(255,255,255,0.60)] mb-2">
+                  {metric.label}
                 </p>
+                <p className="text-2xl font-bold text-white">{metric.value}</p>
               </div>
               {metric.icon && (
-                <div className="text-gray-300 flex-shrink-0">{metric.icon}</div>
+                <div className="text-[rgba(255,255,255,0.35)] flex-shrink-0">{metric.icon}</div>
               )}
             </div>
           </div>
         ))}
       </div>
-      <div className="border-t border-gray-200"></div>
+      <div
+        className="w-full"
+        style={{ height: "1px", background: "rgba(255,255,255,0.08)" }}
+      />
     </div>
   );
 };

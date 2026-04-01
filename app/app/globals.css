@@ -1,49 +1,92 @@
 /* --- Tailwind v4 core import --- */
 @import "tailwindcss";
 
-/* --- BLVΞ Design Tokens --- */
+/* ─────────────────────────────────────────────────────────────────────────────
+   BLVΞ EXECUTIVE DESIGN SYSTEM — Global Tokens
+   ───────────────────────────────────────────────────────────────────────────── */
 :root {
-  --blv-bg: #0F1115;
-  --blv-card: #1A1D22;
-  --blv-border: rgba(255, 255, 255, 0.05);
+  /* Backgrounds */
+  --blv-bg:            #0B0E11;
+  --blv-bg-secondary:  #0F1318;
+  --blv-card:          #111418;
+  --blv-card-hover:    #161B21;
 
-  --blv-text-primary: #E5E7EB;
-  --blv-text-secondary: #9CA3AF;
-  --blv-text-tertiary: #6B7280;
+  /* Borders */
+  --blv-border:        rgba(255, 255, 255, 0.08);
+  --blv-border-hover:  rgba(255, 255, 255, 0.16);
 
-  --blv-green: #22c55e;
-  --blv-red: #ef4444;
-  --blv-blue: #3b82f6;
-  --blv-amber: #f59e0b;
-  --blv-purple: #6366f1;
+  /* Typography */
+  --blv-text-primary:   #FFFFFF;
+  --blv-text-secondary: rgba(255, 255, 255, 0.60);
+  --blv-text-tertiary:  rgba(255, 255, 255, 0.35);
+
+  /* Brand / Accent */
+  --blv-accent:        #3B82F6;
+  --blv-accent-glow:   rgba(59, 130, 246, 0.25);
+
+  /* Semantic */
+  --blv-green:         #4ADE80;
+  --blv-red:           #F87171;
+  --blv-amber:         #FBBF24;
+  --blv-purple:        #A78BFA;
+
+  /* Spacing scale */
+  --blv-xs:   4px;
+  --blv-sm:   8px;
+  --blv-md:   12px;
+  --blv-lg:   16px;
+  --blv-xl:   24px;
+  --blv-2xl:  32px;
+  --blv-3xl:  48px;
+
+  /* Radii */
+  --blv-radius-sm:  6px;
+  --blv-radius-md:  8px;
+  --blv-radius-lg:  12px;
+  --blv-radius-xl:  16px;
+  --blv-radius-2xl: 20px;
+
+  /* Shadows */
+  --blv-shadow-card:   0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+  --blv-shadow-glow:   0 0 24px rgba(59,130,246,0.20);
+  --blv-shadow-metric: 0 2px 8px rgba(0,0,0,0.5);
 }
 
-/* --- Global Reset / Body Styling --- */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Global Reset / Body
+   ───────────────────────────────────────────────────────────────────────────── */
 html, body {
   background: var(--blv-bg);
   color: var(--blv-text-primary);
   margin: 0;
   padding: 0;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- Utility Helpers (Optional) --- */
-.border-blv {
-  border-color: var(--blv-border);
+/* ─────────────────────────────────────────────────────────────────────────────
+   Utility Helpers
+   ───────────────────────────────────────────────────────────────────────────── */
+.text-primary    { color: var(--blv-text-primary); }
+.text-secondary  { color: var(--blv-text-secondary); }
+.text-tertiary   { color: var(--blv-text-tertiary); }
+.bg-card         { background: var(--blv-card); }
+.border-blv      { border-color: var(--blv-border); }
+.accent          { color: var(--blv-accent); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--blv-bg); }
+::-webkit-scrollbar-thumb { background: var(--blv-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--blv-border-hover); }
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--blv-accent);
+  outline-offset: 2px;
 }
 
-.text-primary {
-  color: var(--blv-text-primary);
-}
+/* Smooth transitions on interactive elements */
+a, button { transition: all 0.2s ease; }
 
-.text-secondary {
-  color: var(--blv-text-secondary);
-}
-
-.text-tertiary {
-  color: var(--blv-text-tertiary);
-}
-
-.bg-card {
-  background: var(--blv-card);
-}

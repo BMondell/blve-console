@@ -1,17 +1,15 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
-  Building2, 
-  Users, 
-  TrendingUp, 
-  ChevronRight, 
-  RefreshCw, 
+import {
+  Building2,
+  Users,
+  TrendingUp,
+  ChevronRight,
+  RefreshCw,
   AlertCircle,
   Plus,
-  ArrowUpRight,
-  ShieldCheck
+  ShieldCheck,
 } from "lucide-react";
 import {
   BLVPageContainer,
@@ -20,7 +18,12 @@ import {
   BLVSectionHeader,
   BLVCard,
   BLVMetric,
+  BLVSparkline,
 } from "@/components/blve";
+
+const SPARK_ORGS = [1, 2, 2, 3, 3, 4, 5, 5, 6, 6];
+const SPARK_POOL = [10, 18, 15, 25, 22, 30, 28, 38, 35, 45];
+const SPARK_MEMBERS = [5, 8, 10, 14, 12, 18, 20, 24, 22, 28];
 
 export default function OrgsPage() {
   const [data, setData] = useState<any>(null);
@@ -50,8 +53,8 @@ export default function OrgsPage() {
   if (loading) {
     return (
       <BLVPageContainer title="Organizations" subtitle="Manage and monitor the BLVΞ network hierarchy">
-        <div className="flex items-center justify-center py-[var(--blv-2xl)]">
-          <RefreshCw className="animate-spin text-[var(--blv-accent)]" size={40} />
+        <div className="flex items-center justify-center py-24">
+          <RefreshCw className="animate-spin text-[#3B82F6]" size={36} />
         </div>
       </BLVPageContainer>
     );
@@ -61,125 +64,124 @@ export default function OrgsPage() {
     return (
       <BLVPageContainer title="Organizations" subtitle="Manage and monitor the BLVΞ network hierarchy">
         <BLVCard>
-          <div className="flex items-center gap-[var(--blv-lg)] text-red-400">
-            <AlertCircle size={24} />
-            <p>{error}</p>
+          <div className="flex items-center gap-4 text-[#F87171]">
+            <AlertCircle size={22} />
+            <p className="text-sm">{error}</p>
           </div>
         </BLVCard>
       </BLVPageContainer>
     );
   }
 
-  const orgs = data?.orgs || [];
+  const orgs    = data?.orgs || [];
   const summary = data?.summary || {};
 
   const totalsMetrics = [
     {
       label: "Total Organizations",
       value: orgs.length,
-      icon: <Building2 size={24} />,
+      icon: <Building2 size={22} />,
       trend: { value: 0, direction: "up" as const },
+      sparkline: <BLVSparkline data={SPARK_ORGS} color="#A78BFA" />,
     },
     {
       label: "Total Members",
       value: summary.total_members || 0,
-      icon: <Users size={24} />,
-      trend: { value: 0, direction: "up" as const },
+      icon: <Users size={22} />,
+      trend: { value: 5.3, direction: "up" as const },
+      sparkline: <BLVSparkline data={SPARK_MEMBERS} color="#4ADE80" />,
     },
     {
-      label: "Network Routing Pool",
+      label: "Network Pool",
       value: `$${(summary.total_pool || 0).toLocaleString()}`,
-      icon: <TrendingUp size={24} />,
-      trend: { value: 0, direction: "up" as const },
+      icon: <TrendingUp size={22} />,
+      trend: { value: 12.4, direction: "up" as const },
+      sparkline: <BLVSparkline data={SPARK_POOL} color="#3B82F6" />,
     },
     {
       label: "Active Nodes",
       value: orgs.filter((o: any) => o.org_type === "parent").length,
-      icon: <ShieldCheck size={24} />,
+      icon: <ShieldCheck size={22} />,
       trend: { value: 0, direction: "up" as const },
     },
   ];
 
   return (
-    <BLVPageContainer 
-      title="Organizations" 
+    <BLVPageContainer
+      title="Organizations"
       subtitle="Comprehensive view of all organizations and their hierarchies"
     >
-      <div className="flex justify-between items-center">
-        <div />
+      {/* Action bar */}
+      <div className="flex justify-end">
         <Link href="/admin/add-org">
-          <button className="bg-blv-accent text-blv-bg px-[var(--blv-lg)] py-[var(--blv-md)] rounded-[var(--blv-radius-lg)] font-bold flex items-center gap-[var(--blv-md)] hover:shadow-[0_0_20px_rgba(124,58,237,0.3)] transition-all duration-300">
-            <Plus size={20} />
+          <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors duration-200 shadow-[0_0_16px_rgba(59,130,246,0.3)]">
+            <Plus size={18} />
             Add Organization
           </button>
         </Link>
       </div>
 
+      {/* KPI Row */}
       <BLVTotalsRow metrics={totalsMetrics} />
-      
+
       <BLVSeparationLine />
 
-      <div className="space-y-blv-lg">
+      {/* Network Hierarchy */}
+      <div className="space-y-6">
         <BLVSectionHeader
           title="Network Hierarchy"
           subtitle="Drill down into specific organizations to view detailed performance"
           icon={<Building2 size={20} />}
         />
-        
-        <div className="grid grid-cols-1 gap-[var(--blv-md)]">
+
+        <div className="space-y-3">
           {orgs.length === 0 ? (
             <BLVCard>
-              <p className="text-[var(--blv-text-primary)]-secondary">No organizations found.</p>
+              <p className="text-sm text-[rgba(255,255,255,0.60)]">No organizations found.</p>
             </BLVCard>
           ) : (
             orgs.map((org: any) => (
               <Link key={org.id} href={`/admin/orgs/${org.id}`}>
                 <BLVCard hoverable className="group">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-[var(--blv-lg)]">
-                      <div className="w-14 h-14 bg-[var(--blv-bg)] rounded-[var(--blv-radius-xl)] flex items-center justify-center text-[var(--blv-text-primary)]-tertiary group-hover:text-[var(--blv-accent)] transition-colors duration-300">
-                        <Building2 size={28} />
+                    {/* Left: icon + name */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-[#0B0E11] rounded-xl flex items-center justify-center text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] transition-colors duration-200 flex-shrink-0">
+                        <Building2 size={24} />
                       </div>
                       <div>
-                        <h3 className="text-[1.25rem] font-bold text-[var(--blv-text-primary)] group-hover:text-[var(--blv-accent)] transition-colors duration-300">
+                        <h3 className="text-base font-semibold text-white group-hover:text-[#3B82F6] transition-colors duration-200">
                           {org.name}
                         </h3>
-                        <div className="flex items-center gap-[var(--blv-md)] mt-[var(--blv-xs)]">
-                          <span className="text-[0.75rem] font-mono bg-[var(--blv-bg)] px-[var(--blv-sm)] py-0.5 rounded text-[var(--blv-text-primary)]-tertiary">
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-mono bg-[#0B0E11] px-2 py-0.5 rounded text-[rgba(255,255,255,0.35)]">
                             {org.slug}
                           </span>
-                          <span className="text-[var(--blv-text-primary)]-tertiary text-[0.75rem] uppercase tracking-widest font-bold">
+                          <span className="text-xs text-[rgba(255,255,255,0.35)] uppercase tracking-widest font-semibold">
                             {org.org_type || "Organization"}
                           </span>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-[var(--blv-2xl)]">
-                      <div className="hidden md:block text-right">
-                        <p className="text-[1.125rem] font-bold text-[var(--blv-text-primary)]">
-                          {org.member_count || 0}
-                        </p>
-                        <p className="text-[0.75rem] text-[var(--blv-text-primary)]-tertiary uppercase font-bold tracking-tighter">Members</p>
-                      </div>
-                      
-                      <div className="hidden lg:block text-right">
-                        <p className="text-[1.125rem] font-bold text-[var(--blv-text-primary)]">
-                          ${parseFloat(org.routing_pool || 0).toLocaleString()}
-                        </p>
-                        <p className="text-[0.75rem] text-[var(--blv-text-primary)]-tertiary uppercase font-bold tracking-tighter">Routing Pool</p>
-                      </div>
 
+                    {/* Right: metrics + chevron */}
+                    <div className="flex items-center gap-8">
+                      <div className="hidden md:block text-right">
+                        <p className="text-base font-bold text-white">{org.member_count || 0}</p>
+                        <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase font-semibold tracking-wider">Members</p>
+                      </div>
                       <div className="hidden lg:block text-right">
-                        <p className="text-[1.125rem] font-bold text-[var(--blv-text-primary)]">
-                          {org.sub_org_count || 0}
-                        </p>
-                        <p className="text-[0.75rem] text-[var(--blv-text-primary)]-tertiary uppercase font-bold tracking-tighter">Sub-Orgs</p>
+                        <p className="text-base font-bold text-white">${parseFloat(org.routing_pool || 0).toLocaleString()}</p>
+                        <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase font-semibold tracking-wider">Routing Pool</p>
                       </div>
-                      
-                      <div className="text-[var(--blv-text-primary)]-tertiary group-hover:text-[var(--blv-accent)] transition-all duration-300 transform group-hover:translate-x-1">
-                        <ChevronRight size={24} />
+                      <div className="hidden lg:block text-right">
+                        <p className="text-base font-bold text-white">{org.sub_org_count || 0}</p>
+                        <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase font-semibold tracking-wider">Sub-Orgs</p>
                       </div>
+                      <ChevronRight
+                        size={20}
+                        className="text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] group-hover:translate-x-0.5 transition-all duration-200"
+                      />
                     </div>
                   </div>
                 </BLVCard>

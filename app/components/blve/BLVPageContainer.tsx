@@ -8,6 +8,10 @@ interface BLVPageContainerProps {
   className?: string;
 }
 
+/**
+ * BLVPageContainer — Executive page wrapper.
+ * Background: #0B0E11 | Page title: text-3xl font-bold | Spacing: space-y-6
+ */
 export const BLVPageContainer: React.FC<BLVPageContainerProps> = ({
   title,
   subtitle,
@@ -15,20 +19,21 @@ export const BLVPageContainer: React.FC<BLVPageContainerProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`min-h-screen bg-[var(--blv-bg)] p-[var(--blv-xl)] ${className}`}>
-      <div className="max-w-7xl mx-auto space-y-blv-2xl">
-        {/* Header */}
-        <div className="space-y-[var(--blv-md)]">
-          <h1 className="text-[1.875rem] font-bold text-[var(--blv-text-primary)]">{title}</h1>
+    <div
+      className={`min-h-screen bg-[#0B0E11] p-6 lg:p-8 ${className}`}
+    >
+      <div className="max-w-[1400px] mx-auto space-y-6">
+        {/* Page Header */}
+        <div className="pb-2">
+          <h1 className="text-3xl font-bold text-white">{title}</h1>
           {subtitle && (
-            <p className="text-[var(--blv-text-primary)]-secondary text-[1rem]">{subtitle}</p>
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1.5">
+              {subtitle}
+            </p>
           )}
         </div>
-
-        {/* Content */}
-        <div className="space-y-blv-2xl">
-          {children}
-        </div>
+        {/* Page Content */}
+        <div className="space-y-6">{children}</div>
       </div>
     </div>
   );

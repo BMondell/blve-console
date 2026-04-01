@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 
 interface DashboardLayoutProps {
@@ -7,16 +6,20 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * DashboardLayout — Executive dashboard wrapper.
+ * Background: #0B0E11 | Title: text-3xl font-bold
+ */
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   title,
   children,
 }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-[#0B0E11]">
+      <div className="p-6 lg:p-8 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-          <p className="text-gray-600 text-sm mt-1">
+          <h1 className="text-3xl font-bold text-white">{title}</h1>
+          <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1.5">
             Executive overview and analytics
           </p>
         </div>

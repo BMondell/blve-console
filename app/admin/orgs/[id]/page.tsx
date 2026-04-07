@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+
 import {
   BLVPageContainer,
   BLVTotalsRow,
@@ -146,11 +148,210 @@ export default function OrgDetailPage() {
       sparkline: <BLVSparkline data={SPARK_TX} color="#A78BFA" />,
     },
     {
-     {
-  label: "Sub-Organizations",
-  value: suborgs.length,
-  icon: <GitBranch size={24} />,
-  trend: { value: 0, direction: "up" as const },
-  sparkline: <BLVSparkline data={SPARK_SUBORG} color="#FACC15" />,
-},
-];
+      label: "Sub-Organizations",
+      value: suborgs.length,
+      icon: <GitBranch size={24} />,
+      trend: { value: 0, direction: "up" as const },
+      sparkline: <BLVSparkline data={SPARK_SUBORG} color="#FACC15" />,
+    },
+  ];
+
+  return (
+    <BLVPageContainer
+      title={org.name}
+      subtitle="Organization overview and analytics"
+    >
+      {/* KPI ROW */}
+      <BLVTotalsRow metrics={totalsMetrics} />
+
+      <BLVSeparationLine />
+
+      {/* FINANCIAL OVERVIEW */}
+      <BLVSectionHeader
+        title="Financial Overview"
+        subtitle="Transaction and routing metrics"
+        icon={<TrendingUp size={20} />}
+      />
+
+      <BLVTwoColumn
+        leftTitle="Transaction Summary"
+        rightTitle="Fee Breakdown"
+        leftContent={
+          <div className="space-y-4">
+            <BLVMetric
+              label="Total Transaction Amount"
+              value={`$${totalTransactionAmount.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
+              size="lg"
+            />
+            <BLVMetric
+              label="Total Routing Amount"
+              value={`$${totalRoutingAmount.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
+              size="md"
+            />
+            <BLVMetric
+              label="Average Transaction"
+              value={
+                transactions.length > 0
+                  ? `$${(totalTransactionAmount / transactions.length).toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
+                  : "—"
+              }
+              size="md"
+            />
+          </div>
+        }
+        rightContent={
+          <div className="space-y-4">
+            <BLVMetric
+              label="Total BLVE Fees"
+              value={`$${totalBLVEFees.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
+              size="lg"
+            />
+            <BLVMetric
+              label="Average Fee Per Transaction"
+              value={
+                transactions.length > 0
+                  ? `$${(totalBLVEFees / transactions.length).toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
+                  : "—"
+              }
+              size="md"
+            />
+            <BLVMetric
+              label="Fee Percentage"
+              value={
+                totalTransactionAmount > 0
+                  ? `${((totalBLVEFees / totalTransactionAmount) * 100).toFixed(2)}%`
+                  : "—"
+              }
+              size="md"
+            />
+          </div>
+        }
+      />
+
+      <BLVSeparationLine />
+
+      {/* SUB-ORGANIZATIONS */}
+      <BLVSectionHeader
+        title="Organization Structure"
+        subtitle="Sub-organizations and hierarchy"
+        icon={<Building2 size={20} />}
+      />
+
+      {suborgs.length === 0 ? (
+        <BLVCard>
+          <p className="text-[rgba(255,255,255,0.60)]">No sub-organizations.</p>
+        </BLVCard>
+      ) : (
+        <BLVTwoColumn>
+          {suborgs.map((suborg) => (
+            <BLVCard key={suborg.id} hoverable>
+              <BLVMetric
+                label={suborg.name}
+                value={`$${Number(suborg.routing_pool).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`}
+                size="lg"
+              />
+              <p className="text-xs text-[rgba(255,255,255,0.35)] font-mono mt-2">
+                {suborg.id}
+              </p>
+            </BLVCard>
+          ))}
+        </BLVTwoColumn>
+      )}
+
+      <BLVSeparationLine />
+
+      {/* MEMBERS */}
+      <BLVSectionHeader
+        title="Members"
+        subtitle={`${members.length} member${members.length !== 1 ? "s" : ""}`}
+        icon={<Users size={20} />}
+      />
+
+      {members.length === 0 ? (
+        <BLVCard>
+          <p className="text-[rgba(255,255,255,0.60)]">No members yet.</p>
+        </BLVCard>
+      ) : (
+        <BLVTwoColumn>
+          {members.map((member) => (
+            <BLVCard key={member.id} hoverable>
+              <h3 className="text-white font-semibold">
+                {member.first_name} {member.last_name}
+              </h3>
+              <p className="text-xs text-[rgba(255,255,255,0.35)] font-mono mt-1">
+                {member.id}
+              </p>
+            </BLVCard>
+          ))}
+        </BLVTwoColumn>
+      )}
+
+      <BLVSeparationLine />
+
+      {/* TRANSACTIONS */}
+      <BLVSectionHeader
+        title="Transactions"
+        subtitle={`${transactions.length} transaction${transactions.length !== 1 ? "s" : ""}`}
+        icon={<ArrowRight size={20} />}
+      />
+
+      {transactions.length === 0 ? (
+        <BLVCard>
+          <p className="text-[rgba(255,255,255,0.60)]">No transactions yet.</p>
+        </BLVCard>
+      ) : (
+        <BLVTwoColumn>
+          {transactions.map((tx) => (
+            <BLVCard key={tx.id} hoverable>
+              <BLVMetric
+                label="Amount"
+                value={`$${tx.amount.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`}
+                size="lg"
+              />
+              <BLVMetric
+                label="Routing Amount"
+                value={`$${tx.routing_amount.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`}
+                size="md"
+              />
+              <BLVMetric
+                label="BLVE Fee"
+                value={`$${tx.blve_fee.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`}
+                size="md"
+              />
+              <p className="text-xs text-[rgba(255,255,255,0.35)] font-mono mt-2">
+                {tx.external_tx_id}
+              </p>
+            </BLVCard>
+          ))}
+        </BLVTwoColumn>
+      )}
+    </BLVPageContainer>
+  );
+}

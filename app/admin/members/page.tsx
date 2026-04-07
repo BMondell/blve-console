@@ -141,70 +141,85 @@ export default function MembersListPage() {
           <p className="text-sm text-[rgba(255,255,255,0.60)]">No members found.</p>
         </BLVCard>
       ) : (
-        <BLVTwoColumn>
-          {members.map((member) => {
-            const org = orgs.find((o) => o.id === member.org_id);
-            const joinedDate = new Date(member.created_at).toLocaleDateString(
-              "en-US",
-              {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              }
-            );
+        <BLVTwoColumn
+          leftTitle="Members"
+          rightTitle="Organizations"
+          leftContent={
+            <div className="space-y-4">
+              {members.map((member) => {
+                const org = orgs.find((o) => o.id === member.org_id);
+                const joinedDate = new Date(member.created_at).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  }
+                );
 
-            return (
-              <Link key={member.id} href={`/admin/members/${member.id}`}>
-                <BLVCard hoverable className="group">
-                  <div className="flex items-center gap-4">
-                    {/* Avatar */}
-                    <div className="w-12 h-12 bg-[#0B0E11] rounded-xl flex items-center justify-center text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] transition-colors duration-200">
-                      <Users size={20} />
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1">
-                      <h3 className="text-base font-semibold text-white group-hover:text-[#3B82F6] transition-colors duration-200">
-                        {member.name}
-                      </h3>
-
-                      <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.35)] font-medium">
-                          <Mail size={11} />
-                          {member.email}
+                return (
+                  <Link key={member.id} href={`/admin/members/${member.id}`}>
+                    <BLVCard hoverable className="group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-[#0B0E11] rounded-xl flex items-center justify-center text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] transition-colors duration-200">
+                          <Users size={20} />
                         </div>
 
-                        <span className="text-[rgba(255,255,255,0.20)]">·</span>
+                        <div className="flex-1">
+                          <h3 className="text-base font-semibold text-white group-hover:text-[#3B82F6] transition-colors duration-200">
+                            {member.name}
+                          </h3>
 
-                        <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.35)] font-medium">
-                          <Calendar size={11} />
-                          Joined {joinedDate}
+                          <div className="flex items-center gap-3 mt-1 flex-wrap">
+                            <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.35)] font-medium">
+                              <Mail size={11} />
+                              {member.email}
+                            </div>
+
+                            <span className="text-[rgba(255,255,255,0.20)]">·</span>
+
+                            <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.35)] font-medium">
+                              <Calendar size={11} />
+                              Joined {joinedDate}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Org + Chevron */}
-                  <div className="flex items-center gap-6 mt-4">
-                    <div className="hidden md:block text-right">
-                      <p className="text-sm font-semibold text-white">
-                        {org ? org.name : "No Organization"}
-                      </p>
-                      <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase tracking-wider">
-                        Organization
-                      </p>
-                    </div>
+                      <div className="flex items-center gap-6 mt-4">
+                        <div className="hidden md:block text-right">
+                          <p className="text-sm font-semibold text-white">
+                            {org ? org.name : "No Organization"}
+                          </p>
+                          <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase tracking-wider">
+                            Organization
+                          </p>
+                        </div>
 
-                    <ChevronRight
-                      size={20}
-                      className="text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] group-hover:translate-x-0.5 transition-all duration-200"
-                    />
-                  </div>
+                        <ChevronRight
+                          size={20}
+                          className="text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] group-hover:translate-x-0.5 transition-all duration-200"
+                        />
+                      </div>
+                    </BLVCard>
+                  </Link>
+                );
+              })}
+            </div>
+          }
+          rightContent={
+            <div className="space-y-4">
+              {orgs.map((org) => (
+                <BLVCard key={org.id} hoverable>
+                  <h3 className="text-white font-semibold">{org.name}</h3>
+                  <p className="text-xs text-[rgba(255,255,255,0.35)] font-mono mt-1">
+                    {org.id}
+                  </p>
                 </BLVCard>
-              </Link>
-            );
-          })}
-        </BLVTwoColumn>
+              ))}
+            </div>
+          }
+        />
       )}
     </BLVPageContainer>
   );

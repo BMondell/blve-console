@@ -11,6 +11,7 @@ import {
   Plus,
   ShieldCheck,
 } from "lucide-react";
+
 import {
   BLVPageContainer,
   BLVTotalsRow,
@@ -19,6 +20,7 @@ import {
   BLVCard,
   BLVMetric,
   BLVSparkline,
+  BLVTwoColumn,
 } from "@/components/blve";
 
 const SPARK_ORGS = [1, 2, 2, 3, 3, 4, 5, 5, 6, 6];
@@ -52,7 +54,10 @@ export default function OrgsPage() {
 
   if (loading) {
     return (
-      <BLVPageContainer title="Organizations" subtitle="Manage and monitor the BLVΞ network hierarchy">
+      <BLVPageContainer
+        title="Organizations"
+        subtitle="Comprehensive view of all organizations and their hierarchies"
+      >
         <div className="flex items-center justify-center py-24">
           <RefreshCw className="animate-spin text-[#3B82F6]" size={36} />
         </div>
@@ -62,7 +67,10 @@ export default function OrgsPage() {
 
   if (error) {
     return (
-      <BLVPageContainer title="Organizations" subtitle="Manage and monitor the BLVΞ network hierarchy">
+      <BLVPageContainer
+        title="Organizations"
+        subtitle="Comprehensive view of all organizations and their hierarchies"
+      >
         <BLVCard>
           <div className="flex items-center gap-4 text-[#F87171]">
             <AlertCircle size={22} />
@@ -73,7 +81,7 @@ export default function OrgsPage() {
     );
   }
 
-  const orgs    = data?.orgs || [];
+  const orgs = data?.orgs || [];
   const summary = data?.summary || {};
 
   const totalsMetrics = [
@@ -111,8 +119,8 @@ export default function OrgsPage() {
       title="Organizations"
       subtitle="Comprehensive view of all organizations and their hierarchies"
     >
-      {/* Action bar */}
-      <div className="flex justify-end">
+      {/* Action Bar */}
+      <div className="flex justify-end mb-6">
         <Link href="/admin/add-org">
           <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors duration-200 shadow-[0_0_16px_rgba(59,130,246,0.3)]">
             <Plus size={18} />
@@ -127,69 +135,42 @@ export default function OrgsPage() {
       <BLVSeparationLine />
 
       {/* Network Hierarchy */}
-      <div className="space-y-6">
-        <BLVSectionHeader
-          title="Network Hierarchy"
-          subtitle="Drill down into specific organizations to view detailed performance"
-          icon={<Building2 size={20} />}
-        />
+      <BLVSectionHeader
+        title="Network Hierarchy"
+        subtitle="Drill down into specific organizations to view detailed performance"
+        icon={<Building2 size={20} />}
+      />
 
-        <div className="space-y-3">
-          {orgs.length === 0 ? (
-            <BLVCard>
-              <p className="text-sm text-[rgba(255,255,255,0.60)]">No organizations found.</p>
-            </BLVCard>
-          ) : (
-            orgs.map((org: any) => (
-              <Link key={org.id} href={`/admin/orgs/${org.id}`}>
-                <BLVCard hoverable className="group">
-                  <div className="flex items-center justify-between">
-                    {/* Left: icon + name */}
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-[#0B0E11] rounded-xl flex items-center justify-center text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] transition-colors duration-200 flex-shrink-0">
-                        <Building2 size={24} />
-                      </div>
-                      <div>
-                        <h3 className="text-base font-semibold text-white group-hover:text-[#3B82F6] transition-colors duration-200">
-                          {org.name}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-mono bg-[#0B0E11] px-2 py-0.5 rounded text-[rgba(255,255,255,0.35)]">
-                            {org.slug}
-                          </span>
-                          <span className="text-xs text-[rgba(255,255,255,0.35)] uppercase tracking-widest font-semibold">
-                            {org.org_type || "Organization"}
-                          </span>
-                        </div>
-                      </div>
+      <BLVTwoColumn>
+        {orgs.length === 0 ? (
+          <BLVCard>
+            <p className="text-sm text-[rgba(255,255,255,0.60)]">
+              No organizations found.
+            </p>
+          </BLVCard>
+        ) : (
+          orgs.map((org: any) => (
+            <Link key={org.id} href={`/admin/orgs/${org.id}`}>
+              <BLVCard hoverable className="group">
+                <div className="flex items-center justify-between">
+                  {/* Left */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#0B0E11] rounded-xl flex items-center justify-center text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] transition-colors duration-200">
+                      <Building2 size={24} />
                     </div>
-
-                    {/* Right: metrics + chevron */}
-                    <div className="flex items-center gap-8">
-                      <div className="hidden md:block text-right">
-                        <p className="text-base font-bold text-white">{org.member_count || 0}</p>
-                        <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase font-semibold tracking-wider">Members</p>
+                    <div>
+                      <h3 className="text-base font-semibold text-white group-hover:text-[#3B82F6] transition-colors duration-200">
+                        {org.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-mono bg-[#0B0E11] px-2 py-0.5 rounded text-[rgba(255,255,255,0.35)]">
+                          {org.slug}
+                        </span>
+                        <span className="text-xs text-[rgba(255,255,255,0.35)] uppercase tracking-widest font-semibold">
+                          {org.org_type || "Organization"}
+                        </span>
                       </div>
-                      <div className="hidden lg:block text-right">
-                        <p className="text-base font-bold text-white">${parseFloat(org.routing_pool || 0).toLocaleString()}</p>
-                        <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase font-semibold tracking-wider">Routing Pool</p>
-                      </div>
-                      <div className="hidden lg:block text-right">
-                        <p className="text-base font-bold text-white">{org.sub_org_count || 0}</p>
-                        <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase font-semibold tracking-wider">Sub-Orgs</p>
-                      </div>
-                      <ChevronRight
-                        size={20}
-                        className="text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] group-hover:translate-x-0.5 transition-all duration-200"
-                      />
                     </div>
                   </div>
-                </BLVCard>
-              </Link>
-            ))
-          )}
-        </div>
-      </div>
-    </BLVPageContainer>
-  );
-}
+
+                  {/* Right */}

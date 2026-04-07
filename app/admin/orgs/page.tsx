@@ -173,7 +173,7 @@ export default function OrgsPage() {
                     </div>
                   </div>
 
-                                   {/* Right */}
+                  {/* Right */}
                   <div className="flex items-center gap-8">
                     <div className="hidden md:block text-right">
                       <p className="text-base font-bold text-white">{org.member_count || 0}</p>
@@ -206,9 +206,9 @@ export default function OrgsPage() {
                 </div>
               </BLVCard>
             </Link>
-          ))}
-        </BLVTwoColumn>
-      </BLVPageContainer>
-    );
+          ))
+        )}
+      </BLVTwoColumn>
+    </BLVPageContainer>
+  );
 }
-

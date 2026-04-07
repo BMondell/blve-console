@@ -149,4 +149,5 @@ export default function OrgDetailPage() {
       label: "Sub-Organizations",
       value: suborgs.length,
       icon: <GitBranch size={24} />,
-      trend: { value: 0, direction
+     trend: { value: 0, direction: "up" as const },
+

@@ -181,3 +181,30 @@ export default function MembersListPage() {
   Joined {joinedDate}
 </div>
 
+</div>
+
+</div>
+
+{/* Org + Chevron */}
+<div className="flex items-center gap-6">
+  <div className="hidden md:block text-right">
+    <p className="text-sm font-semibold text-white">
+      {org ? org.name : "No Organization"}
+    </p>
+    <p className="text-xs text-[rgba(255,255,255,0.35)] uppercase tracking-wider">
+      Organization
+    </p>
+  </div>
+
+  <ChevronRight
+    size={20}
+    className="text-[rgba(255,255,255,0.35)] group-hover:text-[#3B82F6] group-hover:translate-x-0.5 transition-all duration-200"
+  />
+</div>
+
+</div>
+</BLVCard>
+</Link>
+))}
+</BLVTwoColumn>
+</BLVPageContainer>

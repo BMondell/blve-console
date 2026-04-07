@@ -146,8 +146,11 @@ export default function OrgDetailPage() {
       sparkline: <BLVSparkline data={SPARK_TX} color="#A78BFA" />,
     },
     {
-      label: "Sub-Organizations",
-      value: suborgs.length,
-      icon: <GitBranch size={24} />,
-     trend: { value: 0, direction: "up" as const },
-
+     {
+  label: "Sub-Organizations",
+  value: suborgs.length,
+  icon: <GitBranch size={24} />,
+  trend: { value: 0, direction: "up" as const },
+  sparkline: <BLVSparkline data={SPARK_SUBORG} color="#FACC15" />,
+},
+];

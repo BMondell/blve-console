@@ -1,0 +1,7 @@
+{
+  "kard_transaction_id": "kard_tx_001",
+  "kard_token": "tok_abc123",
+  "gross_amount": 128.50,
+  "merchant_id": "m_001",
+  "offer_id": "offer_123"
+}

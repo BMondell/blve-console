@@ -35,9 +35,9 @@
   --blv-sm:   8px;
   --blv-md:   12px;
   --blv-lg:   16px;
-  --blv-xl:   24px;
-  --blv-2xl:  32px;
-  --blv-3xl:  48px;
+  --blv-xl:  24px;
+  --blv-2xl: 32px;
+  --blv-3xl: 48px;
 
   /* Radii */
   --blv-radius-sm:  6px;
@@ -89,4 +89,3 @@ html, body {
 
 /* Smooth transitions on interactive elements */
 a, button { transition: all 0.2s ease; }
-
